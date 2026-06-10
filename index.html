@@ -15,6 +15,39 @@
         .camera-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 20px solid rgba(0,0,0,0.4); box-sizing: border-box; pointer-events: none; }
         .camera-grid { position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 2px dashed rgba(255,255,255,0.6); pointer-events: none; }
         .btn-status { padding: 15px; font-size: 1.2rem; font-weight: 700; border-radius: 10px; }
+        
+        /* MODIFIKASI UKURAN LOGO CPM */
+        .logo-cpm {
+            width: 140px; /* Memperbesar ukuran logo secara proporsional */
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* MODIFIKASI TEMA KOTAK LOGIN MENJADI MERAH CPM */
+        .box-login-merah {
+            background-color: #E30613 !important; /* Warna merah sesuai logo CPM */
+            color: #FFFFFF !important;            /* Mengubah teks judul menjadi putih */
+        }
+        
+        /* Mengubah label teks input (Username & Password) menjadi putih kontras */
+        .box-login-merah .form-label {
+            color: #FFFFFF !important;
+        }
+
+        /* MODIFIKASI TOMBOL MASUK APLIKASI */
+        .btn-masuk-custom {
+            background-color: #FFFFFF !important; /* Latar belakang tombol putih murni */
+            color: #E30613 !important;            /* Warna teks merah CPM bold */
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        /* Efek interaksi saat tombol ditekan / disentuh */
+        .btn-masuk-custom:hover {
+            background-color: #F8F9FA !important;
+            color: #B3050F !important;
+            transform: scale(1.02);
+        }
     </style>
 </head>
 <body>
@@ -23,21 +56,21 @@
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5 text-center">
             
-            <img src="https://raw.githubusercontent.com/absensicpm-sketch/ScanQR/main/logo.png" alt="Logo CPM" class="img-fluid mb-2" style="max-height: 80px;">
+            <img src="https://raw.githubusercontent.com/absensicpm-sketch/ScanQR/main/logo.png" alt="Logo CPM" class="logo-cpm mb-2">
             <h4 class="fw-bold text-dark mb-4">CPM CONTROL SYSTEM</h4>
 
-            <div id="loginSection" class="card card-custom p-4 bg-white text-start">
+            <div id="loginSection" class="card card-custom p-4 text-start box-login-merah">
                 <h5 class="fw-bold mb-3 text-center">🔐 PORTAL MASUK SISTEM</h5>
-                <div id="loginAlert" class="alert alert-danger d-none" role="alert"></div>
+                <div id="loginAlert" class="alert alert-warning text-dark fw-bold d-none" role="alert"></div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Username</label>
-                    <input type="text" id="username" class="form-control" placeholder="Masukkan nama pengguna">
+                    <input type="text" id="username" class="form-control border-0" placeholder="Masukkan nama pengguna">
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Password</label>
-                    <input type="password" id="password" class="form-control" placeholder="Masukkan kata sandi">
+                    <input type="password" id="password" class="form-control border-0" placeholder="Masukkan kata sandi">
                 </div>
-                <button onclick="prosesLogin()" id="btnLogin" class="btn btn-primary w-100 fw-bold py-2.5 fs-5">Masuk Aplikasi</button>
+                <button onclick="prosesLogin()" id="btnLogin" class="btn btn-masuk-custom w-100 fw-bold py-2.5 fs-5 shadow-sm">Masuk Aplikasi</button>
             </div>
 
             <div id="karyawanSection" class="card card-custom p-4 bg-white text-start hidden-section">
@@ -122,7 +155,6 @@
         btn.innerText = "Memproses...";
         alertBox.classList.add("d-none");
 
-        // Perbaikan: Ditambahkan Header Text/Plain murni agar lolos dari preflight CORS browser HP
         fetch(WEB_APP_URL, {
             method: "POST",
             mode: "cors",
@@ -261,7 +293,6 @@
 
         const fotoData = ambilSnapshotBase64();
 
-        // Perbaikan: Disamakan metodenya dengan fungsi login agar stabil
         fetch(WEB_APP_URL, {
             method: "POST",
             mode: "cors",
