@@ -104,7 +104,6 @@
 </div>
 
 <script>
-    // GANTI TULISAN DI BAWAH INI DENGAN URL WEB APP DEPLOY ANGGOTA APPS SCRIPT ANDA YANG BARU
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzsJnU1hvmP5cXL2yfIEad4oVKkT7i_TEDItYFus62GZdukBs4nXPI8J7m9RZpiqWd2Yw/exec";
     
     let daftarCabang = [];
@@ -112,7 +111,7 @@
     let cabangTerpilih = "";
     let localStream = null;
 
-function prosesLogin() {
+    function prosesLogin() {
         const user = document.getElementById("username").value.trim();
         const pass = document.getElementById("password").value;
         const btn = document.getElementById("btnLogin");
@@ -123,9 +122,13 @@ function prosesLogin() {
         btn.innerText = "Memproses...";
         alertBox.classList.add("d-none");
 
-        // Kirim tanpa header aneh-aneh agar tidak diblokir CORS browser HP karyawan
+        // Perbaikan: Ditambahkan Header Text/Plain murni agar lolos dari preflight CORS browser HP
         fetch(WEB_APP_URL, {
             method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8"
+            },
             body: JSON.stringify({ aksi: "login", username: user, password: pass })
         })
         .then(res => res.json())
@@ -138,7 +141,6 @@ function prosesLogin() {
                 if(res.role === "karyawan") {
                     daftarCabang = res.cabangList;
                     
-                    // Validasi pengaman jika sheet Data_Cabang di Google Sheet lupa diisi
                     if(!daftarCabang || daftarCabang.length === 0) {
                         alert("Peringatan: Data Cabang gagal dimuat. Periksa kembali tab 'Data_Cabang' di Google Sheet Anda!");
                     }
@@ -158,7 +160,7 @@ function prosesLogin() {
         .catch(err => {
             btn.disabled = false;
             btn.innerText = "Masuk Aplikasi";
-            alertBox.innerText = "Hubungan server terputus. Pastikan URL WEB_APP_URL sudah diganti dengan URL Deployment Apps Script yang baru!";
+            alertBox.innerText = "Hubungan server terputus. Pastikan setelan Deployment di Google Script sudah diset ke 'Anyone'!";
             alertBox.classList.remove("d-none");
             console.error(err);
         });
@@ -259,8 +261,13 @@ function prosesLogin() {
 
         const fotoData = ambilSnapshotBase64();
 
+        // Perbaikan: Disamakan metodenya dengan fungsi login agar stabil
         fetch(WEB_APP_URL, {
             method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8"
+            },
             body: JSON.stringify({
                 aksi: "absen",
                 idKaryawan: idKaryawan,
@@ -289,7 +296,7 @@ function prosesLogin() {
         .catch(err => {
             btn.disabled = false;
             alertBox.className = "alert alert-danger mt-2 fw-bold";
-            alertBox.innerText = "Gagal terhubung dengan server. Periksa jaringan internet Anda.";
+            alertBox.innerText = "Gagal terhubung dengan server Google. Periksa setelan Web App Anda.";
         });
     }
 
