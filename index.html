@@ -16,36 +16,35 @@
         .camera-grid { position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 2px dashed rgba(255,255,255,0.6); pointer-events: none; }
         .btn-status { padding: 15px; font-size: 1.2rem; font-weight: 700; border-radius: 10px; }
         
-        /* MODIFIKASI UKURAN LOGO CPM */
+        /* UKURAN LOGO CPM YANG LEBIH BESAR PROPORSIAL */
         .logo-cpm {
-            width: 140px; /* Memperbesar ukuran logo secara proporsional */
+            width: 140px;
             max-width: 100%;
             height: auto;
         }
 
-        /* MODIFIKASI TEMA KOTAK LOGIN MENJADI MERAH CPM */
+        /* TEMA KOTAK LOGIN MERAH CPM */
         .box-login-merah {
-            background-color: #E30613 !important; /* Warna merah sesuai logo CPM */
-            color: #FFFFFF !important;            /* Mengubah teks judul menjadi putih */
+            background-color: #E30613 !important;
+            color: #FFFFFF !important;
         }
         
-        /* Mengubah label teks input (Username & Password) menjadi putih kontras */
         .box-login-merah .form-label {
             color: #FFFFFF !important;
         }
 
-        /* MODIFIKASI TOMBOL MASUK APLIKASI */
-        .btn-masuk-custom {
-            background-color: #FFFFFF !important; /* Latar belakang tombol putih murni */
-            color: #E30613 !important;            /* Warna teks merah CPM bold */
+        /* TOMBOL MASUK APLIKASI: KUNING TULISAN PUTIH */
+        .btn-masuk-kuning {
+            background-color: #FFC107 !important; /* Warna kuning kontras cerah */
+            color: #FFFFFF !important;            /* Warna tulisan putih murni */
             border: none;
             transition: all 0.3s ease;
         }
 
-        /* Efek interaksi saat tombol ditekan / disentuh */
-        .btn-masuk-custom:hover {
-            background-color: #F8F9FA !important;
-            color: #B3050F !important;
+        /* Efek saat tombol disentuh */
+        .btn-masuk-kuning:hover {
+            background-color: #E0A800 !important;  /* Kuning sedikit lebih pekat saat di-hover */
+            color: #FFFFFF !important;
             transform: scale(1.02);
         }
     </style>
@@ -62,15 +61,18 @@
             <div id="loginSection" class="card card-custom p-4 text-start box-login-merah">
                 <h5 class="fw-bold mb-3 text-center">🔐 PORTAL MASUK SISTEM</h5>
                 <div id="loginAlert" class="alert alert-warning text-dark fw-bold d-none" role="alert"></div>
+                
                 <div class="mb-3">
                     <label class="form-label fw-bold">Username</label>
-                    <input type="text" id="username" class="form-control border-0" placeholder="Masukkan nama pengguna">
+                    <input type="text" id="username" class="form-control" placeholder="Masukkan nama pengguna">
                 </div>
+                
                 <div class="mb-3">
                     <label class="form-label fw-bold">Password</label>
-                    <input type="password" id="password" class="form-control border-0" placeholder="Masukkan kata sandi">
+                    <input type="password" id="password" class="form-control" placeholder="Masukkan kata sandi">
                 </div>
-                <button onclick="prosesLogin()" id="btnLogin" class="btn btn-masuk-custom w-100 fw-bold py-2.5 fs-5 shadow-sm">Masuk Aplikasi</button>
+                
+                <button onclick="prosesLogin()" id="btnLogin" class="btn btn-masuk-kuning w-100 fw-bold py-2.5 fs-5 shadow-sm">Masuk Aplikasi</button>
             </div>
 
             <div id="karyawanSection" class="card card-custom p-4 bg-white text-start hidden-section">
