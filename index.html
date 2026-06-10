@@ -34,9 +34,7 @@
             transform: scale(1.02);
         }
 
-        /* Container Pembaca Kamera Barcode */
         #qr-reader { width: 100%; max-width: 340px; margin: 0 auto; border: none !important; }
-        #qr-reader button { background-color: #E30613 !important; color: white !important; border: none !important; padding: 8px 15px !important; border-radius: 6px !important; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -124,15 +122,6 @@
                 </div>
             </div>
 
-            <div id="managementSection" class="card card-custom p-4 bg-white hidden-section">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span id="roleBadge" class="badge bg-dark px-3 py-2">AKSES: MANAGEMENT</span>
-                    <button onclick="logout()" class="btn btn-sm btn-outline-danger fw-bold">Keluar</button>
-                </div>
-                <h5 class="fw-bold my-3 text-start">Selamat Datang di Portal Monitoring</h5>
-                <p class="text-muted small text-start">Seluruh aktivitas dipantau melalui dashboard manajemen utama.</p>
-            </div>
-
             <p class="text-muted small mt-4">© 2026 CPM Management System</p>
         </div>
     </div>
@@ -170,16 +159,10 @@
             btn.innerText = "Masuk Aplikasi";
             if(res.status === "success") {
                 document.getElementById("loginSection").classList.add("hidden-section");
-                
-                if(res.role === "karyawan") {
-                    daftarCabang = res.cabangList;
-                    document.getElementById("karyawanSection").classList.remove("hidden-section");
-                    
-                    mulaiTrackingGPS();
-                    mulaiKameraSelfie();
-                } else {
-                    document.getElementById("managementSection").classList.remove("hidden-section");
-                }
+                daftarCabang = res.cabangList;
+                document.getElementById("karyawanSection").classList.remove("hidden-section");
+                mulaiTrackingGPS();
+                mulaiKameraSelfie();
             } else {
                 alertBox.innerText = res.message;
                 alertBox.classList.remove("d-none");
@@ -188,64 +171,63 @@
         .catch(err => {
             btn.disabled = false;
             btn.innerText = "Masuk Aplikasi";
-            alertBox.innerText = "Hubungan server terputus. Pastikan setelan Deployment di Google Script sudah diset ke 'Anyone'!";
+            alertBox.innerText = "Koneksi server terputus/ditolak.";
             alertBox.classList.remove("d-none");
         });
     }
 
-   /* SISTEM SCANNER QR / BARCODE AUTOMATION */
+    /* KONTROL SCANNER QR/BARCODE KAMERA BELAKANG */
     function bukaScannerQR() {
-        matikanKameraSelfie();
-
-        document.getElementById("scannerContainer").classList.remove("hidden-section");
         document.getElementById("btnBukaScan").disabled = true;
         
-        if (!html5QrcodeScanner) {
-            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+        // LANGKAH UTAMA: Matikan total kamera depan dan hilangkan stream-nya agar hardware lepas
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
+            document.getElementById('webcam-preview').srcObject = null;
         }
-        
-        const config = { fps: 15, qrbox: { width: 260, height: 160 } };
-        
-        html5QrcodeScanner.start(
-            { facingMode: "environment" }, 
-            config,
-            (decodedText) => {
-                const idHasilScan = decodedText.toUpperCase().trim();
-                
-                // Beri indikasi ke pengguna bahwa sistem sedang mencocokkan nama ke server
-                document.getElementById("idKaryawan").value = "Mencari nama untuk " + idHasilScan + "...";
+
+        // Beri jeda 300ms agar hardware kamera benar-benar siap beralih fungsi
+        setTimeout(() => {
+            document.getElementById("scannerContainer").classList.remove("hidden-section");
+            
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            }
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                { fps: 15, qrbox: { width: 250, height: 150 } },
+                (decodedText) => {
+                    const idHasilScan = decodedText.toUpperCase().trim();
+                    document.getElementById("idKaryawan").value = "Mencari nama untuk " + idHasilScan + "...";
+                    tutupScannerQR();
+
+                    // Cari Nama Karyawan ke Database Google Sheet
+                    fetch(WEB_APP_URL, {
+                        method: "POST",
+                        mode: "cors",
+                        headers: { "Content-Type": "text/plain;charset=utf-8" },
+                        body: JSON.stringify({ aksi: "cariNama", idKaryawan: idHasilScan })
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.status === "success") {
+                            document.getElementById("idKaryawan").value = idHasilScan + " - " + res.namaKaryawan;
+                        } else {
+                            document.getElementById("idKaryawan").value = idHasilScan + " - (Nama Tidak Terdaftar)";
+                        }
+                    })
+                    .catch(() => {
+                        document.getElementById("idKaryawan").value = idHasilScan;
+                    });
+                },
+                (errorMessage) => { }
+            ).catch(err => {
+                alert("Gagal mengaktifkan kamera belakang. Pastikan izin kamera aktif.");
                 tutupScannerQR();
-
-                // Request instan ke Google Script untuk menerjemahkan ID menjadi Nama Karyawan
-                fetch(WEB_APP_URL, {
-                    method: "POST",
-                    mode: "cors",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ aksi: "cariNama", idKaryawan: idHasilScan })
-                })
-                .then(res => res.json())
-                .then(res => {
-                    if (res.status === "success") {
-                        // FORMAT KETIKA BERHASIL: "CPM-001 - BUDI SANTOSO"
-                        document.getElementById("idKaryawan").value = idHasilScan + " - " + res.namaKaryawan;
-                    } else {
-                        // Jika ID tidak ditemukan di sheet database karyawan
-                        document.getElementById("idKaryawan").value = idHasilScan + " - (Nama Tidak Terdaftar)";
-                    }
-                })
-                .catch(() => {
-                    // Terjadi kendala sinyal jaringan, tampilkan ID aslinya saja agar absensi tetap bisa dikirim
-                    document.getElementById("idKaryawan").value = idHasilScan;
-                });
-
-                alert("Scan Barcode Berhasil Terbaca!");
-            },
-            (errorMessage) => { }
-        ).catch(err => {
-            console.error(err);
-            alert("Gagal mengaktifkan kamera belakang.");
-            tutupScannerQR();
-        });
+            });
+        }, 300);
     }
 
     function tutupScannerQR() {
@@ -253,8 +235,7 @@
         if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
             html5QrcodeScanner.stop().then(() => {
                 document.getElementById("scannerContainer").classList.add("hidden-section");
-                // Hidupkan kembali kamera selfie wajah setelah scan barcode selesai
-                mulaiKameraSelfie();
+                mulaiKameraSelfie(); // Hidupkan kembali kamera selfie wajah depan
             }).catch(() => {
                 document.getElementById("scannerContainer").classList.add("hidden-section");
                 mulaiKameraSelfie();
@@ -265,7 +246,6 @@
         }
     }
 
-    /* PELACAK SATELIT GPS */
     function mulaiTrackingGPS() {
         const gpsAlert = document.getElementById("gpsAlert");
         if (!navigator.geolocation) {
@@ -296,11 +276,11 @@
                     document.getElementById("absensiForm").classList.remove("hidden-section");
                 } else {
                     gpsAlert.className = "alert alert-danger text-center fw-bold py-2.5";
-                    gpsAlert.innerText = "❌ AKSES DITOLAK: Di luar radius cabang!";
+                    gpsAlert.innerText = "❌ AKSES DITOLAK: Di luar radius cabang (" + userCoords + ")";
                 }
             },
             (err) => {
-                gpsAlert.innerText = "Gagal mengunci GPS. Aktifkan lokasi perangkat Anda.";
+                gpsAlert.innerText = "Gagal mengunci GPS. Aktifkan lokasi perangkat.";
             },
             { enableHighAccuracy: true, timeout: 10000 }
         );
@@ -319,7 +299,6 @@
         return R * c; 
     }
 
-    /* MANAJEMEN KAMERA SELFIE DEPAN */
     async function mulaiKameraSelfie() {
         const videoElement = document.getElementById('webcam-preview');
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -334,15 +313,9 @@
         }
     }
 
-    function matikanKameraSelfie() {
-        if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
-            localStream = null;
-        }
-    }
-
     function ambilSnapshotBase64() {
         const video = document.getElementById('webcam-preview');
+        if(!video.srcObject) return "";
         const canvas = document.createElement('canvas');
         canvas.width = 480;
         canvas.height = 640;
@@ -403,13 +376,17 @@
         .catch(err => {
             btn.disabled = false;
             alertBox.className = "alert alert-danger mt-2 fw-bold";
-            alertBox.innerText = "Hubungan server terputus. Periksa deployment Google Script Anda.";
+            alertBox.innerText = "Gagal mengirim data.";
         });
     }
 
     function logout() {
-        tutupScannerQR();
-        matikanKameraSelfie();
+        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+            html5QrcodeScanner.stop();
+        }
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+        }
         location.reload();
     }
 </script>
