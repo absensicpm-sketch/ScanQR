@@ -193,9 +193,8 @@
         });
     }
 
-    /* SISTEM SCANNER QR / BARCODE ANTI-BENTROK HARDWARE */
+   /* SISTEM SCANNER QR / BARCODE AUTOMATION */
     function bukaScannerQR() {
-        // 1. Matikan kamera selfie depan agar hardware kamera belakang terlepas & bebas diakses
         matikanKameraSelfie();
 
         document.getElementById("scannerContainer").classList.remove("hidden-section");
@@ -211,14 +210,40 @@
             { facingMode: "environment" }, 
             config,
             (decodedText) => {
-                document.getElementById("idKaryawan").value = decodedText.toUpperCase();
+                const idHasilScan = decodedText.toUpperCase().trim();
+                
+                // Beri indikasi ke pengguna bahwa sistem sedang mencocokkan nama ke server
+                document.getElementById("idKaryawan").value = "Mencari nama untuk " + idHasilScan + "...";
                 tutupScannerQR();
-                alert("Scan Barcode Berhasil: " + decodedText);
+
+                // Request instan ke Google Script untuk menerjemahkan ID menjadi Nama Karyawan
+                fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ aksi: "cariNama", idKaryawan: idHasilScan })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === "success") {
+                        // FORMAT KETIKA BERHASIL: "CPM-001 - BUDI SANTOSO"
+                        document.getElementById("idKaryawan").value = idHasilScan + " - " + res.namaKaryawan;
+                    } else {
+                        // Jika ID tidak ditemukan di sheet database karyawan
+                        document.getElementById("idKaryawan").value = idHasilScan + " - (Nama Tidak Terdaftar)";
+                    }
+                })
+                .catch(() => {
+                    // Terjadi kendala sinyal jaringan, tampilkan ID aslinya saja agar absensi tetap bisa dikirim
+                    document.getElementById("idKaryawan").value = idHasilScan;
+                });
+
+                alert("Scan Barcode Berhasil Terbaca!");
             },
-            (errorMessage) => { /* Abaikan internal log pencarian berkala */ }
+            (errorMessage) => { }
         ).catch(err => {
             console.error(err);
-            alert("Gagal mengakses kamera belakang. Pastikan izin kamera browser diizinkan.");
+            alert("Gagal mengaktifkan kamera belakang.");
             tutupScannerQR();
         });
     }
