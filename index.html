@@ -34,7 +34,7 @@
             transform: scale(1.02);
         }
 
-        /* Scan QR Box Scanner */
+        /* Container Pembaca Kamera Barcode */
         #qr-reader { width: 100%; max-width: 340px; margin: 0 auto; border: none !important; }
         #qr-reader button { background-color: #E30613 !important; color: white !important; border: none !important; padding: 8px 15px !important; border-radius: 6px !important; font-weight: bold; }
     </style>
@@ -92,7 +92,7 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-bold d-block">Scan Barcode / QR Karyawan:</label>
-                        <button type="button" onclick="bukaScannerQR()" class="btn btn-primary w-100 fw-bold py-2 mb-2 shadow-sm">📷 Klik untuk Scan Barcode / QR</button>
+                        <button type="button" id="btnBukaScan" onclick="bukaScannerQR()" class="btn btn-primary w-100 fw-bold py-2 mb-2 shadow-sm">📷 Klik untuk Scan Barcode / QR</button>
                         
                         <div id="scannerContainer" class="p-2 border rounded mb-3 hidden-section text-center bg-light">
                             <div id="qr-reader"></div>
@@ -102,7 +102,7 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">ID / Nama Karyawan Terdeteksi:</label>
-                        <input type="text" id="idKaryawan" class="form-control form-control-lg fw-bold border-2 text-primary bg-light" placeholder="Belum ada barcode yang di-scan" readonly>
+                        <input type="text" id="idKaryawan" class="form-control form-control-lg fw-bold text-primary bg-light" placeholder="Belum ada barcode yang di-scan" readonly>
                     </div>
 
                     <div class="mb-3">
@@ -130,7 +130,7 @@
                     <button onclick="logout()" class="btn btn-sm btn-outline-danger fw-bold">Keluar</button>
                 </div>
                 <h5 class="fw-bold my-3 text-start">Selamat Datang di Portal Monitoring</h5>
-                <p class="text-muted small text-start">Seluruh aktivitas absensi dipantau secara langsung melalui Dashboard utama Anda.</p>
+                <p class="text-muted small text-start">Seluruh aktivitas dipantau melalui dashboard manajemen utama.</p>
             </div>
 
             <p class="text-muted small mt-4">© 2026 CPM Management System</p>
@@ -188,51 +188,59 @@
         .catch(err => {
             btn.disabled = false;
             btn.innerText = "Masuk Aplikasi";
-            alertBox.innerText = "Koneksi gagal. Pastikan Deploy internal script opsi 'Anyone' sudah diperbarui.";
+            alertBox.innerText = "Hubungan server terputus. Pastikan setelan Deployment di Google Script sudah diset ke 'Anyone'!";
             alertBox.classList.remove("d-none");
         });
     }
 
-    /* KONTROL SCANNER QR / BARCODE (KAMERA BELAKANG) */
+    /* SISTEM SCANNER QR / BARCODE ANTI-BENTROK HARDWARE */
     function bukaScannerQR() {
+        // 1. Matikan kamera selfie depan agar hardware kamera belakang terlepas & bebas diakses
+        matikanKameraSelfie();
+
         document.getElementById("scannerContainer").classList.remove("hidden-section");
+        document.getElementById("btnBukaScan").disabled = true;
         
         if (!html5QrcodeScanner) {
             html5QrcodeScanner = new Html5Qrcode("qr-reader");
         }
         
-        const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+        const config = { fps: 15, qrbox: { width: 260, height: 160 } };
         
-        // Membuka scanner menggunakan kamera belakang otomatis (environment)
         html5QrcodeScanner.start(
             { facingMode: "environment" }, 
             config,
             (decodedText) => {
-                // Berhasil Membaca QR / Barcode
                 document.getElementById("idKaryawan").value = decodedText.toUpperCase();
                 tutupScannerQR();
-                alert("Sukses Membaca ID Karyawan: " + decodedText);
+                alert("Scan Barcode Berhasil: " + decodedText);
             },
-            (errorMessage) => {
-                // Mencari target fokus, abaikan log error pencarian berkala
-            }
+            (errorMessage) => { /* Abaikan internal log pencarian berkala */ }
         ).catch(err => {
-            console.error("Gagal membuka kamera belakang:", err);
-            alert("Gagal mengakses kamera belakang untuk scan QR.");
+            console.error(err);
+            alert("Gagal mengakses kamera belakang. Pastikan izin kamera browser diizinkan.");
+            tutupScannerQR();
         });
     }
 
     function tutupScannerQR() {
+        document.getElementById("btnBukaScan").disabled = false;
         if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
             html5QrcodeScanner.stop().then(() => {
                 document.getElementById("scannerContainer").classList.add("hidden-section");
+                // Hidupkan kembali kamera selfie wajah setelah scan barcode selesai
+                mulaiKameraSelfie();
+            }).catch(() => {
+                document.getElementById("scannerContainer").classList.add("hidden-section");
+                mulaiKameraSelfie();
             });
         } else {
             document.getElementById("scannerContainer").classList.add("hidden-section");
+            mulaiKameraSelfie();
         }
     }
 
-    /* KONTROL TRACKING GPS JANGKAUAN */
+    /* PELACAK SATELIT GPS */
     function mulaiTrackingGPS() {
         const gpsAlert = document.getElementById("gpsAlert");
         if (!navigator.geolocation) {
@@ -286,7 +294,7 @@
         return R * c; 
     }
 
-    /* KONTROL PREVIEW VERIFIKASI WAJAH (KAMERA DEPAN) */
+    /* MANAJEMEN KAMERA SELFIE DEPAN */
     async function mulaiKameraSelfie() {
         const videoElement = document.getElementById('webcam-preview');
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -296,8 +304,15 @@
                 videoElement.srcObject = stream;
             })
             .catch(function(error) {
-                console.error("Akses kamera depan diblokir:", error);
+                console.error("Gagal memuat kamera depan:", error);
             });
+        }
+    }
+
+    function matikanKameraSelfie() {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
         }
     }
 
@@ -363,15 +378,13 @@
         .catch(err => {
             btn.disabled = false;
             alertBox.className = "alert alert-danger mt-2 fw-bold";
-            alertBox.innerText = "Gagal mengirim data ke server utama.";
+            alertBox.innerText = "Hubungan server terputus. Periksa deployment Google Script Anda.";
         });
     }
 
     function logout() {
         tutupScannerQR();
-        if(localStream) {
-            localStream.getTracks().forEach(track => track.stop());
-        }
+        matikanKameraSelfie();
         location.reload();
     }
 </script>
