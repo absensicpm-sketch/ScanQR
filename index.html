@@ -11,12 +11,11 @@
         .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .hidden-section { display: none; }
         .camera-container { position: relative; width: 100%; max-width: 340px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 4px solid #fff; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-        #webcam-preview { width: 100%; transform: scaleX(-1); background-color: #222; }
+        #webcam-preview { width: 100%; transform: scaleX(-1); background-color: #222; height: 260px; object-fit: cover; }
         .camera-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 20px solid rgba(0,0,0,0.4); box-sizing: border-box; pointer-events: none; }
         .camera-grid { position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 2px dashed rgba(255,255,255,0.6); pointer-events: none; }
         .btn-status { padding: 15px; font-size: 1.2rem; font-weight: 700; border-radius: 10px; }
         
-        /* UKURAN LOGO CPM YANG LEBIH BESAR PROPORSIAL */
         .logo-cpm {
             width: 140px;
             max-width: 100%;
@@ -35,15 +34,14 @@
 
         /* TOMBOL MASUK APLIKASI: KUNING TULISAN PUTIH */
         .btn-masuk-kuning {
-            background-color: #FFC107 !important; /* Warna kuning kontras cerah */
-            color: #FFFFFF !important;            /* Warna tulisan putih murni */
+            background-color: #FFC107 !important;
+            color: #FFFFFF !important;
             border: none;
             transition: all 0.3s ease;
         }
 
-        /* Efek saat tombol disentuh */
         .btn-masuk-kuning:hover {
-            background-color: #E0A800 !important;  /* Kuning sedikit lebih pekat saat di-hover */
+            background-color: #E0A800 !important;
             color: #FFFFFF !important;
             transform: scale(1.02);
         }
@@ -111,7 +109,7 @@
                     </div>
 
                     <div class="mb-4 text-center">
-                        <label class="form-label d-block text-start fw-bold">Foto Bukti Fisik Wajah (Selfie):</label>
+                        <label class="form-label d-block text-start fw-bold">Kamera Pindai Wajah / QR Aktif:</label>
                         <div class="camera-container">
                             <video id="webcam-preview" autoplay playsinline></video>
                             <div class="camera-overlay"></div>
@@ -130,7 +128,7 @@
                     <button onclick="logout()" class="btn btn-sm btn-outline-danger fw-bold">Keluar</button>
                 </div>
                 <h5 class="fw-bold my-3 text-start">Selamat Datang di Portal Monitoring</h5>
-                <p class="text-muted small text-start">Seluruh aktivitas absensi, foto selfie, koordinat jangkauan GPS, dan rekap karyawan dapat dipantau secara langsung melalui sistem utama Looker Studio Dashboard atau Google Spreadsheet Anda.</p>
+                <p class="text-muted small text-start">Seluruh aktivitas absensi pantau secara langsung melalui Dashboard utama Anda.</p>
             </div>
 
             <p class="text-muted small mt-4">© 2026 CPM Management System</p>
@@ -160,9 +158,7 @@
         fetch(WEB_APP_URL, {
             method: "POST",
             mode: "cors",
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ aksi: "login", username: user, password: pass })
         })
         .then(res => res.json())
@@ -174,17 +170,13 @@
                 
                 if(res.role === "karyawan") {
                     daftarCabang = res.cabangList;
-                    
-                    if(!daftarCabang || daftarCabang.length === 0) {
-                        alert("Peringatan: Data Cabang gagal dimuat. Periksa kembali tab 'Data_Cabang' di Google Sheet Anda!");
-                    }
-                    
                     document.getElementById("karyawanSection").classList.remove("hidden-section");
+                    
+                    // Trigger inisialisasi hardware sistem
                     mulaiTrackingGPS();
                     mulaiKameraSelfie();
                 } else {
                     document.getElementById("managementSection").classList.remove("hidden-section");
-                    document.getElementById("roleBadge").innerText = "AKSES: " + res.role.toUpperCase();
                 }
             } else {
                 alertBox.innerText = res.message;
@@ -194,17 +186,15 @@
         .catch(err => {
             btn.disabled = false;
             btn.innerText = "Masuk Aplikasi";
-            alertBox.innerText = "Hubungan server terputus. Pastikan setelan Deployment di Google Script sudah diset ke 'Anyone'!";
+            alertBox.innerText = "Koneksi gagal. Pastikan Deploy internal script opsi 'Anyone' sudah diperbarui.";
             alertBox.classList.remove("d-none");
-            console.error(err);
         });
     }
 
     function mulaiTrackingGPS() {
         const gpsAlert = document.getElementById("gpsAlert");
         if (!navigator.geolocation) {
-            gpsAlert.className = "alert alert-danger text-center fw-bold";
-            gpsAlert.innerText = "Browser / Perangkat Anda tidak mendukung pelacakan GPS.";
+            gpsAlert.innerText = "Browser tidak mendukung GPS.";
             return;
         }
 
@@ -231,12 +221,11 @@
                     document.getElementById("absensiForm").classList.remove("hidden-section");
                 } else {
                     gpsAlert.className = "alert alert-danger text-center fw-bold py-2.5";
-                    gpsAlert.innerText = "❌ AKSES DITOLAK: Anda berada di luar radius lokasi cabang!";
+                    gpsAlert.innerText = "❌ AKSES DITOLAK: Di luar radius cabang!";
                 }
             },
             (err) => {
-                gpsAlert.className = "alert alert-danger text-center fw-bold py-2.5";
-                gpsAlert.innerText = "Gagal mengunci GPS. Harap aktifkan GPS HP & berikan izin akses lokasi.";
+                gpsAlert.innerText = "Gagal mengunci GPS. Aktifkan lokasi perangkat Anda.";
             },
             { enableHighAccuracy: true, timeout: 10000 }
         );
@@ -256,11 +245,17 @@
     }
 
     async function mulaiKameraSelfie() {
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
-            document.getElementById('webcam-preview').srcObject = localStream;
-        } catch (e) {
-            console.error("Izin kamera selfie depan ditolak:", e);
+        const videoElement = document.getElementById('webcam-preview');
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
+            .then(function(stream) {
+                localStream = stream;
+                videoElement.srcObject = stream;
+            })
+            .catch(function(error) {
+                console.error("Akses hardware kamera diblokir:", error);
+                alert("Harap berikan izin akses kamera pada browser Anda agar bisa melakukan scanning wajah/QR.");
+            });
         }
     }
 
@@ -284,13 +279,13 @@
         const alertBox = document.getElementById("submitAlert");
 
         if(!idKaryawan) {
-            alert("Silakan masukkan ID Karyawan atau tempelkan scan barcode Anda!");
+            alert("Masukkan ID Karyawan terlebih dahulu!");
             return;
         }
 
         btn.disabled = true;
         alertBox.className = "alert alert-info mt-2 fw-bold";
-        alertBox.innerText = "Sedang memproses validasi wajah & mengirim data...";
+        alertBox.innerText = "Memproses kirim data absensi...";
         alertBox.classList.remove("d-none");
 
         const fotoData = ambilSnapshotBase64();
@@ -298,9 +293,7 @@
         fetch(WEB_APP_URL, {
             method: "POST",
             mode: "cors",
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
                 aksi: "absen",
                 idKaryawan: idKaryawan,
@@ -319,7 +312,6 @@
                 alertBox.innerText = res.message;
                 document.getElementById("idKaryawan").value = "";
                 document.getElementById("keterangan").value = "";
-                
                 setTimeout(() => alertBox.classList.add("d-none"), 4000);
             } else {
                 alertBox.className = "alert alert-danger mt-2 fw-bold";
@@ -329,7 +321,7 @@
         .catch(err => {
             btn.disabled = false;
             alertBox.className = "alert alert-danger mt-2 fw-bold";
-            alertBox.innerText = "Gagal terhubung dengan server Google. Periksa setelan Web App Anda.";
+            alertBox.innerText = "Gagal mengirim data ke server utama.";
         });
     }
 
