@@ -6,6 +6,7 @@
     <title>CPM Control System - Portal Resmi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #f4f6f9; }
         .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -16,21 +17,9 @@
         .camera-grid { position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 2px dashed rgba(255,255,255,0.6); pointer-events: none; }
         .btn-status { padding: 15px; font-size: 1.2rem; font-weight: 700; border-radius: 10px; }
         
-        .logo-cpm {
-            width: 140px;
-            max-width: 100%;
-            height: auto;
-        }
-
-        /* TEMA KOTAK LOGIN MERAH CPM */
-        .box-login-merah {
-            background-color: #E30613 !important;
-            color: #FFFFFF !important;
-        }
-        
-        .box-login-merah .form-label {
-            color: #FFFFFF !important;
-        }
+        .logo-cpm { width: 140px; max-width: 100%; height: auto; }
+        .box-login-merah { background-color: #E30613 !important; color: #FFFFFF !important; }
+        .box-login-merah .form-label { color: #FFFFFF !important; }
 
         /* TOMBOL MASUK APLIKASI: KUNING TULISAN PUTIH */
         .btn-masuk-kuning {
@@ -39,12 +28,15 @@
             border: none;
             transition: all 0.3s ease;
         }
-
         .btn-masuk-kuning:hover {
             background-color: #E0A800 !important;
             color: #FFFFFF !important;
             transform: scale(1.02);
         }
+
+        /* Scan QR Box Scanner */
+        #qr-reader { width: 100%; max-width: 340px; margin: 0 auto; border: none !important; }
+        #qr-reader button { background-color: #E30613 !important; color: white !important; border: none !important; padding: 8px 15px !important; border-radius: 6px !important; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -99,8 +91,18 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Ketik ID / Scan Barcode Karyawan:</label>
-                        <input type="text" id="idKaryawan" class="form-control text-uppercase form-control-lg fw-bold border-2 border-primary" placeholder="Contoh: CPM-001" autocomplete="off">
+                        <label class="form-label fw-bold d-block">Scan Barcode / QR Karyawan:</label>
+                        <button type="button" onclick="bukaScannerQR()" class="btn btn-primary w-100 fw-bold py-2 mb-2 shadow-sm">📷 Klik untuk Scan Barcode / QR</button>
+                        
+                        <div id="scannerContainer" class="p-2 border rounded mb-3 hidden-section text-center bg-light">
+                            <div id="qr-reader"></div>
+                            <button type="button" onclick="tutupScannerQR()" class="btn btn-sm btn-secondary mt-2">Batal Scan</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ID / Nama Karyawan Terdeteksi:</label>
+                        <input type="text" id="idKaryawan" class="form-control form-control-lg fw-bold border-2 text-primary bg-light" placeholder="Belum ada barcode yang di-scan" readonly>
                     </div>
 
                     <div class="mb-3">
@@ -109,7 +111,7 @@
                     </div>
 
                     <div class="mb-4 text-center">
-                        <label class="form-label d-block text-start fw-bold">Kamera Pindai Wajah / QR Aktif:</label>
+                        <label class="form-label d-block text-start fw-bold">Kamera Pindai Wajah Aktif:</label>
                         <div class="camera-container">
                             <video id="webcam-preview" autoplay playsinline></video>
                             <div class="camera-overlay"></div>
@@ -128,7 +130,7 @@
                     <button onclick="logout()" class="btn btn-sm btn-outline-danger fw-bold">Keluar</button>
                 </div>
                 <h5 class="fw-bold my-3 text-start">Selamat Datang di Portal Monitoring</h5>
-                <p class="text-muted small text-start">Seluruh aktivitas absensi pantau secara langsung melalui Dashboard utama Anda.</p>
+                <p class="text-muted small text-start">Seluruh aktivitas absensi dipantau secara langsung melalui Dashboard utama Anda.</p>
             </div>
 
             <p class="text-muted small mt-4">© 2026 CPM Management System</p>
@@ -143,6 +145,7 @@
     let userCoords = "";
     let cabangTerpilih = "";
     let localStream = null;
+    let html5QrcodeScanner = null;
 
     function prosesLogin() {
         const user = document.getElementById("username").value.trim();
@@ -172,7 +175,6 @@
                     daftarCabang = res.cabangList;
                     document.getElementById("karyawanSection").classList.remove("hidden-section");
                     
-                    // Trigger inisialisasi hardware sistem
                     mulaiTrackingGPS();
                     mulaiKameraSelfie();
                 } else {
@@ -191,6 +193,46 @@
         });
     }
 
+    /* KONTROL SCANNER QR / BARCODE (KAMERA BELAKANG) */
+    function bukaScannerQR() {
+        document.getElementById("scannerContainer").classList.remove("hidden-section");
+        
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+        }
+        
+        const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+        
+        // Membuka scanner menggunakan kamera belakang otomatis (environment)
+        html5QrcodeScanner.start(
+            { facingMode: "environment" }, 
+            config,
+            (decodedText) => {
+                // Berhasil Membaca QR / Barcode
+                document.getElementById("idKaryawan").value = decodedText.toUpperCase();
+                tutupScannerQR();
+                alert("Sukses Membaca ID Karyawan: " + decodedText);
+            },
+            (errorMessage) => {
+                // Mencari target fokus, abaikan log error pencarian berkala
+            }
+        ).catch(err => {
+            console.error("Gagal membuka kamera belakang:", err);
+            alert("Gagal mengakses kamera belakang untuk scan QR.");
+        });
+    }
+
+    function tutupScannerQR() {
+        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById("scannerContainer").classList.add("hidden-section");
+            });
+        } else {
+            document.getElementById("scannerContainer").classList.add("hidden-section");
+        }
+    }
+
+    /* KONTROL TRACKING GPS JANGKAUAN */
     function mulaiTrackingGPS() {
         const gpsAlert = document.getElementById("gpsAlert");
         if (!navigator.geolocation) {
@@ -244,6 +286,7 @@
         return R * c; 
     }
 
+    /* KONTROL PREVIEW VERIFIKASI WAJAH (KAMERA DEPAN) */
     async function mulaiKameraSelfie() {
         const videoElement = document.getElementById('webcam-preview');
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -253,8 +296,7 @@
                 videoElement.srcObject = stream;
             })
             .catch(function(error) {
-                console.error("Akses hardware kamera diblokir:", error);
-                alert("Harap berikan izin akses kamera pada browser Anda agar bisa melakukan scanning wajah/QR.");
+                console.error("Akses kamera depan diblokir:", error);
             });
         }
     }
@@ -278,8 +320,8 @@
         const btn = document.getElementById("btnSubmit");
         const alertBox = document.getElementById("submitAlert");
 
-        if(!idKaryawan) {
-            alert("Masukkan ID Karyawan terlebih dahulu!");
+        if(!idKaryawan || idKaryawan.includes("Belum ada")) {
+            alert("Anda wajib melakukan Scan Barcode/QR Code terlebih dahulu!");
             return;
         }
 
@@ -326,6 +368,7 @@
     }
 
     function logout() {
+        tutupScannerQR();
         if(localStream) {
             localStream.getTracks().forEach(track => track.stop());
         }
