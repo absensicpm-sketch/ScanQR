@@ -326,7 +326,7 @@
         return canvas.toDataURL('image/jpeg', 0.65);
     }
 
-    function kirimAbsensi() {
+function kirimAbsensi() {
         const idKaryawan = document.getElementById("idKaryawan").value.trim();
         const tipe = document.querySelector('input[name="tipeAbsen"]:checked').value;
         const ket = document.getElementById("keterangan").value;
@@ -338,6 +338,36 @@
             return;
         }
 
+        // --- GATHER DATA UNTUK RANGKUMAN POP-UP ---
+        const namaCabang = cabangTerpilih;
+        
+        let namaSaja = idKaryawan;
+        if (idKaryawan.includes(" - ")) {
+            namaSaja = idKaryawan.split(" - ")[1].trim();
+        }
+
+        const sekarang = new Date();
+        const opsiTanggal = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const tanggalTeks = sekarang.toLocaleDateString('id-ID', opsiTanggal);
+        const jamTeks = Thermal = sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " WIB";
+
+        // --- SUSUN TEKS PERINGATAN POP-UP KONFIRMASI ---
+        const pesanKonfirmasi = 
+            "⚠️ PERIKSA KEMBALI DATA ABSENSI ANDA!\n\n" +
+            "📌 Nama Karyawan : " + namaSaja + "\n" +
+            "📌 Status Absen  : " + tipe + "\n" +
+            "📌 Lokasi/Area   : " + namaCabang + "\n" +
+            "📌 Tanggal       : " + tanggalTeks + "\n" +
+            "📌 Waktu/Jam     : " + jamTeks + "\n\n" +
+            "Apakah data di atas sudah benar? Klik OK untuk mengirim ke database.";
+
+        const tanyakanUser = confirm(pesanKonfirmasi);
+
+        if (tanyakanUser === false) {
+            return; 
+        }
+
+        // JIKA DIKLIK OK, PROSES PENGIRIMAN AKTIF
         btn.disabled = true;
         alertBox.className = "alert alert-info mt-2 fw-bold";
         alertBox.innerText = "Memproses kirim data absensi...";
@@ -365,9 +395,24 @@
             if(res.status === "success") {
                 alertBox.className = "alert alert-success mt-2 fw-bold text-center";
                 alertBox.innerText = res.message;
-                document.getElementById("idKaryawan").value = "";
-                document.getElementById("keterangan").value = "";
-                setTimeout(() => alertBox.classList.add("d-none"), 4000);
+                
+                // --- LOGIKA POP-UP NOTIFIKASI SUKSES DISESUAIKAN TIPE ABSEN ---
+                let salamTambahan = "";
+                if (tipe === "MASUK") {
+                    salamTambahan = "Selamat Bekerja..";
+                } else {
+                    salamTambahan = "Selamat Jalan..";
+                }
+
+                // Munculkan Pop-up Penutupan yang Ramah
+                alert(
+                    "🎉 Terima Kasih Absensi Anda Sudah Terekam di database CPM Management System.\n\n" + 
+                    salamTambahan
+                );
+
+                // --- MODIFIKASI TERBARU: SINKRONISASI OTOMATIS LOGOUT SETELAH KLIK OK ---
+                logout(); 
+                
             } else {
                 alertBox.className = "alert alert-danger mt-2 fw-bold";
                 alertBox.innerText = res.message;
@@ -379,16 +424,7 @@
             alertBox.innerText = "Gagal mengirim data.";
         });
     }
-
-    function logout() {
-        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-            html5QrcodeScanner.stop();
-        }
-        if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
-        }
-        location.reload();
-    }
+    
 </script>
 </body>
 </html>
