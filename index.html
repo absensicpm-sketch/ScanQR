@@ -6,6 +6,7 @@
     <title>CPM Control System - Portal Resmi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #f4f6f9; }
@@ -21,7 +22,11 @@
         .box-login-merah .form-label { color: #FFFFFF !important; }
         .btn-masuk-kuning { background-color: #FFC107 !important; color: #FFFFFF !important; border: none; transition: all 0.3s ease; }
         .btn-masuk-kuning:hover { background-color: #E0A800 !important; color: #FFFFFF !important; transform: scale(1.02); }
-        #qr-reader { width: 100%; max-width: 340px; margin: 0 auto; border: none !important; }
+        #qr-reader, #toilet-qr-reader { width: 100%; max-width: 340px; margin: 0 auto; border: none !important; }
+        
+        /* Gaya Tambahan untuk Menu Pilihan */
+        .btn-menu-pilihan { padding: 20px; border-radius: 15px; transition: all 0.3s ease; text-align: left; background-color: #fff; border: 2px solid #eee; }
+        .btn-menu-pilihan:hover { border-color: #E30613; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
     </style>
 </head>
 <body>
@@ -50,10 +55,35 @@
                 <button onclick="prosesLogin()" id="btnLogin" class="btn btn-masuk-kuning w-100 fw-bold py-2.5 fs-5 shadow-sm">Masuk Aplikasi</button>
             </div>
 
+            <div id="dashboardMenuSection" class="card card-custom p-4 text-start bg-white hidden-section">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="badge bg-danger px-3 py-2">SESI AKTIF BERHASIL TERKUNCI</span>
+                    <button onclick="tutupDanLogout()" class="btn btn-sm btn-outline-danger fw-bold">🚪 Keluar</button>
+                </div>
+                
+                <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-bars-staggered me-2 text-danger"></i>Pilih Menu Operasional:</h5>
+                
+                <button onclick="navigasiKeMenu('absen')" class="btn btn-menu-pilihan w-100 d-flex align-items-center mb-3">
+                    <div class="bg-primary-subtle text-primary rounded-3 p-3 me-3 fs-3"><i class="fa-solid fa-user-clock"></i></div>
+                    <div>
+                        <div class="fw-bold text-dark fs-5">Absensi Kehadiran</div>
+                        <div class="text-muted small">Scan QR Code untuk rekam Absen Masuk atau Pulang Kerja.</div>
+                    </div>
+                </button>
+                
+                <button onclick="navigasiKeMenu('toilet')" class="btn btn-menu-pilihan w-100 d-flex align-items-center">
+                    <div class="bg-success-subtle text-success rounded-3 p-3 me-3 fs-3"><i class="fa-solid fa-restroom"></i></div>
+                    <div>
+                        <div class="fw-bold text-dark fs-5">Higienitas &amp; Kontrol Toilet</div>
+                        <div class="text-muted small">Isi laporan inspeksi kebersihan fasilitas toilet berkala.</div>
+                    </div>
+                </button>
+            </div>
+
             <div id="karyawanSection" class="card card-custom p-4 bg-white text-start hidden-section">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="badge bg-success px-3 py-2">HAK AKSES: KARYAWAN</span>
-                    <button onclick="tutupDanLogout()" class="btn btn-sm btn-danger fw-bold">🚪 Keluar</button>
+                    <button onclick="kembaliKeMenuUtama()" class="btn btn-sm btn-secondary fw-bold"><i class="fa-solid fa-chevron-left me-1"></i> Kembali</button>
+                    <span class="badge bg-success px-3 py-2">MENU: ABSENSI</span>
                 </div>
         
                 <div id="gpsAlert" class="alert alert-warning text-center fw-bold py-2.5 mb-3">Memindai koordinat lokasi satelit GPS...</div>
@@ -109,6 +139,91 @@
                 </div>
             </div>
 
+            <div id="toiletSection" class="card card-custom p-4 bg-white text-start hidden-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button onclick="kembaliKeMenuUtama()" class="btn btn-sm btn-secondary fw-bold"><i class="fa-solid fa-chevron-left me-1"></i> Kembali</button>
+                    <span class="badge bg-emerald text-white px-3 py-2" style="background-color: #198754;">MENU: TOILET INSPECTION</span>
+                </div>
+
+                <div id="toiletScanContainer">
+                    <label class="form-label fw-bold d-block">Scan QR Code di Lokasi Toilet:</label>
+                    <button type="button" id="btnBukaScanToilet" onclick="bukaScannerQRToilet()" class="btn btn-success w-100 fw-bold py-2 mb-2 shadow-sm">📷 Klik untuk Scan QR Toilet</button>
+                    
+                    <div id="toiletScannerBox" class="p-2 border rounded mb-3 hidden-section text-center bg-light">
+                        <div id="toilet-qr-reader"></div>
+                        <button type="button" onclick="tutupScannerQRToilet()" class="btn btn-sm btn-secondary mt-2">Batal Scan</button>
+                    </div>
+                </div>
+
+                <div id="toiletForm" class="hidden-section">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ID / Lokasi Toilet Terbaca:</label>
+                        <input type="text" id="idToilet" class="form-control fw-bold text-success bg-light" readonly>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">1. Kondisi Lantai</label>
+                            <select id="tLantai" class="form-select form-select-sm"><option value="Kering">Kering / Clean</option><option value="Basah/Kotor">Basah / Kotor</option></select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">2. Wastafel &amp; Cermin</label>
+                            <select id="tWastafel" class="form-select form-select-sm"><option value="Bersih">Bersih</option><option value="Kotor">Kotor</option></select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">3. Sabun &amp; Tisu</label>
+                            <select id="tSabun" class="form-select form-select-sm"><option value="Lengkap">Lengkap</option><option value="Habis">Habis</option></select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">4. Kondisi Aroma</label>
+                            <select id="tBau" class="form-select form-select-sm"><option value="Wangi/Netral">Wangi/Netral</option><option value="Bau">Bau</option></select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">5. Closet &amp; Urinal</label>
+                            <select id="tCloset" class="form-select form-select-sm"><option value="Bersih">Bersih &amp; Lancar</option><option value="Kotor/Mampet">Kotor / Mampet</option></select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">6. Tempat Sampah</label>
+                            <select id="tSampah" class="form-select form-select-sm"><option value="Kosong">Kosong / Rapi</option><option value="Penuh">Penuh / Kotor</option></select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">7. Kondisi Plafon</label>
+                            <select id="tPlafon" class="form-select form-select-sm"><option value="Bersih">Bersih / Aman</option><option value="Bocor/Berjamur">Bocor / Berjamur</option></select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">8. Penerangan Lampu</label>
+                            <select id="tLampu" class="form-select form-select-sm"><option value="Terang">Terang / Nyala</option><option value="Mati/Redup">Mati / Redup</option></select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">9. Catatan Lapangan (Ketik Manual)</label>
+                        <input type="text" id="tCatatan" class="form-control form-control-sm" placeholder="Contoh: Kran wastafel bocor / Aman">
+                    </div>
+
+                    <div class="mb-4 text-center">
+                        <label class="form-label d-block text-start fw-bold">Kamera Verifikasi Petugas Aktif:</label>
+                        <div class="camera-container">
+                            <video id="toilet-webcam-preview" autoplay playsinline style="width: 100%; transform: scaleX(-1); background-color: #222; height: 260px; object-fit: cover;"></video>
+                            <div class="camera-overlay"></div>
+                            <div class="camera-grid"></div>
+                        </div>
+                    </div>
+
+                    <div id="toiletSubmitAlert" class="alert d-none" role="alert"></div>
+                    <button onclick="kirimLaporanToilet()" id="btnSubmitToilet" class="btn btn-success w-100 fw-bold py-3 fs-5 shadow">📤 KIRIM LAPORAN INSPEKSI TOILET</button>
+                </div>
+            </div>
+
             <p class="text-muted small mt-4">© 2026 CPM Management System</p>
         </div>
     </div>
@@ -123,8 +238,7 @@
       <div class="modal-body fs-6 p-4" id="cpmModalBody" style="white-space: pre-line; line-height: 1.6;">
         Isi pesan...
       </div>
-      <div class="modal-footer border-0 d-flex justify-content-end" id="cpmModalFooter">
-         </div>
+      <div class="modal-footer border-0 d-flex justify-content-end" id="cpmModalFooter"></div>
     </div>
   </div>
 </div>
@@ -138,6 +252,10 @@
     let cabangTerpilih = "";
     let localStream = null;
     let html5QrcodeScanner = null;
+    
+    // Variabel Tambahan Toilet
+    let html5QrcodeScannerToilet = null;
+    let scanResultToiletID = "";
 
     function prosesLogin() {
         const user = document.getElementById("username").value.trim();
@@ -163,9 +281,9 @@
             if(res.status === "success") {
                 document.getElementById("loginSection").classList.add("hidden-section");
                 daftarCabang = res.cabangList;
-                document.getElementById("karyawanSection").classList.remove("hidden-section");
-                mulaiTrackingGPS();
-                mulaiKameraSelfie();
+                // Alihkan ke halaman Menu Utama (Dashboard), bukan langsung ke form absen
+                document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
+                mulaiTrackingGPS(); // Tetap lock koordinat secara pasif sejak awal login
             } else {
                 alertBox.innerText = res.message;
                 alertBox.classList.remove("d-none");
@@ -179,14 +297,36 @@
         });
     }
 
-    /* KONTROL SCANNER QR/BARCODE KAMERA BELAKANG */
+    // CONTROLLER ROUTING NAVIGASI INTERN PORTAL
+    function navigasiKeMenu(pilihan) {
+        document.getElementById("dashboardMenuSection").classList.add("hidden-section");
+        
+        if (pilihan === "absen") {
+            document.getElementById("karyawanSection").classList.remove("hidden-section");
+            mulaiKameraSelfie("webcam-preview");
+        } else if (pilihan === "toilet") {
+            document.getElementById("toiletSection").classList.remove("hidden-section");
+            document.getElementById("toiletScanContainer").classList.remove("hidden-section");
+            document.getElementById("toiletForm").classList.add("hidden-section");
+        }
+    }
+
+    function kembaliKeMenuUtama() {
+        // Matikan semua hardware kamera
+        matikanSemuaAliranKamera();
+        tutupScannerQR();
+        tutupScannerQRToilet();
+        
+        // Sembunyikan semua workspace, kembalikan dashboard menu pilihan
+        document.getElementById("karyawanSection").classList.add("hidden-section");
+        document.getElementById("toiletSection").classList.add("hidden-section");
+        document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
+    }
+
+    /* KONTROL SCANNER QR ABSENSI (ASLI) */
     function bukaScannerQR() {
         document.getElementById("btnBukaScan").disabled = true;
-        if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
-            localStream = null;
-            document.getElementById('webcam-preview').srcObject = null;
-        }
+        matikanSemuaAliranKamera();
 
         setTimeout(() => {
             document.getElementById("scannerContainer").classList.remove("hidden-section");
@@ -233,17 +373,64 @@
         if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
             html5QrcodeScanner.stop().then(() => {
                 document.getElementById("scannerContainer").classList.add("hidden-section");
-                mulaiKameraSelfie();
+                mulaiKameraSelfie("webcam-preview");
             }).catch(() => {
                 document.getElementById("scannerContainer").classList.add("hidden-section");
-                mulaiKameraSelfie();
+                mulaiKameraSelfie("webcam-preview");
             });
         } else {
             document.getElementById("scannerContainer").classList.add("hidden-section");
-            mulaiKameraSelfie();
+            if(!document.getElementById("karyawanSection").classList.contains("hidden-section")) {
+                mulaiKameraSelfie("webcam-preview");
+            }
         }
     }
 
+    /* KONTROL SCANNER QR TOILET (BARU) */
+    function bukaScannerQRToilet() {
+        document.getElementById("btnBukaScanToilet").disabled = true;
+        matikanSemuaAliranKamera();
+
+        setTimeout(() => {
+            document.getElementById("toiletScannerBox").classList.remove("hidden-section");
+            if (!html5QrcodeScannerToilet) {
+                html5QrcodeScannerToilet = new Html5Qrcode("toilet-qr-reader");
+            }
+            
+            html5QrcodeScannerToilet.start(
+                { facingMode: "environment" }, 
+                { fps: 15, qrbox: { width: 250, height: 150 } },
+                (decodedText) => {
+                    scanResultToiletID = decodedText.trim();
+                    document.getElementById("idToilet").value = scanResultToiletID;
+                    
+                    tutupScannerQRToilet();
+                    document.getElementById("toiletScanContainer").classList.add("hidden-section");
+                    document.getElementById("toiletForm").classList.remove("hidden-section");
+                    mulaiKameraSelfie("toilet-webcam-preview");
+                },
+                (errorMessage) => { }
+            ).catch(err => {
+                alert("Gagal mengaktifkan kamera belakang toilet.");
+                tutupScannerQRToilet();
+            });
+        }, 300);
+    }
+
+    function tutupScannerQRToilet() {
+        document.getElementById("btnBukaScanToilet").disabled = false;
+        if (html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) {
+            html5QrcodeScannerToilet.stop().then(() => {
+                document.getElementById("toiletScannerBox").classList.add("hidden-section");
+            }).catch(() => {
+                document.getElementById("toiletScannerBox").classList.add("hidden-section");
+            });
+        } else {
+            document.getElementById("toiletScannerBox").classList.add("hidden-section");
+        }
+    }
+
+    /* KONTROL GPS GEOLOCATION ENGINE (ASLI) */
     function mulaiTrackingGPS() {
         const gpsAlert = document.getElementById("gpsAlert");
         if (!navigator.geolocation) {
@@ -297,8 +484,10 @@
         return R * c;
     }
 
-    async function mulaiKameraSelfie() {
-        const videoElement = document.getElementById('webcam-preview');
+    /* DRIVER MANAGEMENT WEBCAM HARDWARE TRACING */
+    async function mulaiKameraSelfie(idElementTarget) {
+        matikanSemuaAliranKamera();
+        const videoElement = document.getElementById(idElementTarget);
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
             .then(function(stream) {
@@ -306,17 +495,25 @@
                 videoElement.srcObject = stream;
             })
             .catch(function(error) {
-                console.error("Gagal memuat kamera depan:", error);
+                console.error("Gagal memuat kamera depan (" + idElementTarget + "):", error);
             });
         }
     }
 
-function ambilSnapshotBase64() {
-        const video = document.getElementById('webcam-preview');
-        if(!video.srcObject) return "";
+    function matikanSemuaAliranKamera() {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
+        }
+        document.getElementById('webcam-preview').srcObject = null;
+        document.getElementById('toilet-webcam-preview').srcObject = null;
+    }
+
+    function ambilSnapshotBase64(idVideoSource) {
+        const video = document.getElementById(idVideoSource);
+        if(!video || !video.srcObject) return "";
         
         const canvas = document.createElement('canvas');
-        // OPTIMASI: Set ukuran hemat data agar teks Base64 tidak terputus/terpotong di jaringan
         canvas.width = 320;
         canvas.height = 240;
         
@@ -324,10 +521,10 @@ function ambilSnapshotBase64() {
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1); 
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // OPTIMASI: Kompres kualitas gambar ke tingkat 0.4 (Ringan & Cepat Lolos ke Google Drive)
-        return canvas.toDataURL('image/jpeg', 0.4);
+        return canvas.toDataURL('image/jpeg', 0.4); // Kompresi 0.4 agar enteng ke Sheets
     }
+
+    /* ENGINE KIKIM ABSENSI (ASLI) */
     function kirimAbsensi() {
         const idKaryawan = document.getElementById("idKaryawan").value.trim();
         const tipe = document.querySelector('input[name="tipeAbsen"]:checked').value;
@@ -346,7 +543,7 @@ function ambilSnapshotBase64() {
         const opsiTanggal = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const tanggalTeks = sekarang.toLocaleDateString('id-ID', opsiTanggal);
         const jamTeks = sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " WIB";
-
+        
         const teksRangkuman = 
             "📌 <strong>Nama Karyawan</strong> : " + namaSaja + "\n" +
             "📌 <strong>Status Absen</strong>  : " + tipe + "\n" +
@@ -354,16 +551,14 @@ function ambilSnapshotBase64() {
             "📌 <strong>Tanggal</strong>       : " + tanggalTeks + "\n" +
             "📌 <strong>Waktu/Jam</strong>     : " + jamTeks + "\n\n" +
             "Apakah data di atas sudah benar? Klik <strong>KIRIM DATA</strong> untuk memproses ke database.";
-
+            
         document.getElementById("cpmModalTitle").innerHTML = "⚠️ PERIKSA KEMBALI DATA ABSENSI";
         document.getElementById("modalHeaderBg").className = "modal-header bg-warning text-dark";
         document.getElementById("cpmModalBody").innerHTML = teksRangkuman;
-        
         document.getElementById("cpmModalFooter").innerHTML = `
             <button type="button" class="btn btn-secondary fw-bold px-3" data-bs-dismiss="modal">❌ Batal</button>
             <button type="button" class="btn btn-primary fw-bold px-4" onclick="eksekusiKirimKeServer()">📤 Kirim Data</button>
         `;
-
         var myModal = new bootstrap.Modal(document.getElementById('cpmModal'));
         myModal.show();
     }
@@ -384,8 +579,7 @@ function ambilSnapshotBase64() {
         alertBox.innerText = "Memproses kirim data absensi...";
         alertBox.classList.remove("d-none");
 
-        const fotoData = ambilSnapshotBase64();
-
+        const fotoData = ambilSnapshotBase64('webcam-preview');
         fetch(WEB_APP_URL, {
             method: "POST",
             mode: "cors",
@@ -407,11 +601,9 @@ function ambilSnapshotBase64() {
                     document.getElementById("modalHeaderBg").className = "modal-header bg-success text-white";
                     document.getElementById("cpmModalBody").innerHTML = 
                         "Terima Kasih Absensi Anda Sudah Terekam di database CPM Management System.\n\n<strong>" + salamTambahan + "</strong>";
-                    
                     document.getElementById("cpmModalFooter").innerHTML = `
                         <button type="button" class="btn btn-success fw-bold px-5" onclick="tutupDanLogout()">OK</button>
                     `;
-                    
                     var modalSukses = new bootstrap.Modal(document.getElementById('cpmModal'));
                     modalSukses.show();
                 }, 400);
@@ -429,7 +621,70 @@ function ambilSnapshotBase64() {
         });
     }
 
-    // FUNGSI UTAMA: Bersihkan sisa-sisa modal backdrop, reset form, dan reset tampilan
+    /* ENGINE TRANSMISI INSPEKSI TOILET (BARU - 9 POIN) */
+    function kirimLaporanToilet() {
+        const btn = document.getElementById("btnSubmitToilet");
+        const alertBox = document.getElementById("toiletSubmitAlert");
+
+        btn.disabled = true;
+        alertBox.className = "alert alert-info mt-2 fw-bold";
+        alertBox.innerText = "Sedang mentransmisikan checklist toilet ke server...";
+        alertBox.classList.remove("d-none");
+
+        // Mempersiapkan struktur paket data toilet
+        const payloadToilet = {
+            aksi: "kontrolToilet",
+            idToilet: scanResultToiletID,
+            namaPetugas: "Petugas Lapangan CPM",
+            statusLantai: document.getElementById("tLantai").value,
+            statusWastafel: document.getElementById("tWastafel").value,
+            statusSabun: document.getElementById("tSabun").value,
+            statusBau: document.getElementById("tBau").value,
+            closetUrinal: document.getElementById("tCloset").value,
+            tempatSampah: document.getElementById("tSampah").value,
+            plafon: document.getElementById("tPlafon").value,
+            penerangan: document.getElementById("tLampu").value,
+            catatan: document.getElementById("tCatatan").value.trim() || "-",
+            fotoToilet: ambilSnapshotBase64('toilet-webcam-preview'),
+            geoCode: userCoords || "GPS Terkunci/Mati"
+        };
+
+        fetch(WEB_APP_URL, {
+            method: "POST",
+            mode: "cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payloadToilet)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res.status === "success") {
+                alertBox.className = "alert alert-success mt-2 fw-bold text-center";
+                alertBox.innerText = res.message;
+                
+                setTimeout(() => {
+                    document.getElementById("cpmModalTitle").innerHTML = "🎉 LAPORAN TERKIRIM!";
+                    document.getElementById("modalHeaderBg").className = "modal-header bg-success text-white";
+                    document.getElementById("cpmModalBody").innerHTML = "Laporan Checklist Kebersihan Toilet berkala untuk lokasi <strong>" + scanResultToiletID + "</strong> sukses tersimpan di database.";
+                    document.getElementById("cpmModalFooter").innerHTML = `
+                        <button type="button" class="btn btn-success fw-bold px-5" onclick="tutupDanLogout()">Selesai</button>
+                    `;
+                    var modalSuksesToilet = new bootstrap.Modal(document.getElementById('cpmModal'));
+                    modalSuksesToilet.show();
+                }, 400);
+            } else {
+                btn.disabled = false;
+                alertBox.className = "alert alert-danger mt-2 fw-bold";
+                alertBox.innerText = res.message;
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            alertBox.className = "alert alert-danger mt-2 fw-bold";
+            alertBox.innerText = "Koneksi Bermasalah. Gagal memproses data toilet.";
+        });
+    }
+
+    /* SYSTEM RESET CLOSING WORKSPACE OUT GATE (ASLI & DIKEMBANGKAN) */
     function tutupDanLogout() {
         var modalElement = document.getElementById('cpmModal');
         var modalInstance = bootstrap.Modal.getInstance(modalElement);
@@ -437,43 +692,47 @@ function ambilSnapshotBase64() {
             modalInstance.hide();
         }
 
-        // Hapus paksa efek hitam transparan/backdrop Bootstrap yang membekukan layar
         document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
         document.body.classList.remove('modal-open');
         document.body.style.overflow = '';
         document.body.style.paddingRight = '';
 
-        // Reset data field
+        // Reset Data Form Absen
         document.getElementById("idKaryawan").value = "";
         document.getElementById("keterangan").value = "";
         document.getElementById("btnSubmit").disabled = false;
         document.getElementById("submitAlert").classList.add("d-none");
         
-        // Terbangkan ke fungsi logout pengunci sistem
+        // Reset Data Form Toilet
+        document.getElementById("tCatatan").value = "";
+        document.getElementById("btnSubmitToilet").disabled = false;
+        document.getElementById("toiletSubmitAlert").classList.add("d-none");
+        scanResultToiletID = "";
+        
         logout();
     }
 
-    // FUNGSI TERBARU: Pemutus aliran hardware kamera dan pengunci halaman login kembali
     function logout() {
-        // 1. Matikan aliran hardware kamera selfie depan agar lampu kamera di HP padam
-        if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
-            localStream = null;
-        }
-        document.getElementById('webcam-preview').srcObject = null;
-
-        // 2. Hilangkan scanner kamera belakang jika masih menggantung
+        // Matikan total semua hardware kamera
+        matikanSemuaAliranKamera();
+        
+        // Matikan scanner yang mungkin menggantung
         if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
             html5QrcodeScanner.stop();
         }
+        if (html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) {
+            html5QrcodeScannerToilet.stop();
+        }
 
-        // 3. Bersihkan form credential login sebelumnya
+        // Hapus field credential login
         document.getElementById("username").value = "";
         document.getElementById("password").value = "";
 
-        // 4. Tukar penampakan halaman: sembunyikan form absen, tampilkan panel login
+        // Kembalikan tampilan ke gerbang login semula
         document.getElementById("karyawanSection").classList.add("hidden-section");
+        document.getElementById("toiletSection").classList.add("hidden-section");
         document.getElementById("absensiForm").classList.add("hidden-section");
+        document.getElementById("dashboardMenuSection").classList.add("hidden-section");
         document.getElementById("loginSection").classList.remove("hidden-section");
     }
 </script>
