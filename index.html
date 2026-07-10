@@ -301,26 +301,37 @@ function prosesLogin() {
             btn.disabled = false;
             btn.innerText = "Masuk Aplikasi";
             
-            if(res.status === "success") {
-                document.getElementById("loginSection").classList.add("hidden-section");
-                
-                // 1. Logika untuk Kacab
-                if (res.role === "kacab") {
-                    document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
-                    document.getElementById("displayAreaKacab").innerText = "Area: " + res.area;
-                    if(typeof muatDataMonitor === 'function') {
-                        muatDataMonitor(res.area);
-                    }
-                } 
-                // 2. Logika untuk Karyawan
-                else {
-                    daftarCabang = res.cabangList;
-                    document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
-                    // Pengecekan aman untuk fungsi GPS
-                    if(typeof mulaiTrackingGPS === 'function') {
-                        mulaiTrackingGPS();
-                    }
-                }
+     if(res.status === "success") {
+    document.getElementById("loginSection").classList.add("hidden-section");
+    
+    // Debugging untuk memastikan apa yang diterima browser
+    console.log("Respon lengkap dari server:", res);
+    
+    // Tangkap data area dengan aman
+    const areaKacab = res.area || "Tidak Diketahui"; 
+    
+    // 1. Logika untuk Kacab
+    if (res.role === "kacab") {
+        document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
+        document.getElementById("displayAreaKacab").innerText = "Area: " + areaKacab;
+        
+        console.log("Memuat data untuk area:", areaKacab);
+        
+        if(typeof muatDataMonitor === 'function') {
+            muatDataMonitor(areaKacab);
+        } else {
+            console.error("Fungsi muatDataMonitor tidak ditemukan!");
+        }
+    } 
+    // 2. Logika untuk Karyawan
+    else {
+        daftarCabang = res.cabangList;
+        document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
+        if(typeof mulaiTrackingGPS === 'function') {
+            mulaiTrackingGPS();
+        }
+    }
+}
             } else {
                 alertBox.innerText = res.message;
                 alertBox.classList.remove("d-none");
