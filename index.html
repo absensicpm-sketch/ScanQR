@@ -13,471 +13,726 @@
         .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .hidden-section { display: none; }
         .camera-container { position: relative; width: 100%; max-width: 340px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 4px solid #fff; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-        #webcam-preview { width: 100%; transform: scaleX(-1); background-color: #222; max-height: 260px; object-fit: cover; }
-        .overlay-guideline { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 3px dashed rgba(255,255,255,0.6); pointer-events: none; border-radius: 12px; box-sizing: border-box; }
-        .btn-custom { border-radius: 10px; padding: 12px; font-weight: 600; }
-        .btn-menu { height: 110px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 15px; font-weight: 600; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .btn-menu i { font-size: 2rem; margin-bottom: 8px; }
-        .header-banner { background: #E30613; color: white; padding: 20px; border-radius: 0 0 25px 25px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(227,6,19,0.3); }
+        #webcam-preview { width: 100%; transform: scaleX(-1); background-color: #222; height: 260px; object-fit: cover; }
+        .camera-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 20px solid rgba(0,0,0,0.4); box-sizing: border-box; pointer-events: none; }
+        .camera-grid { position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 2px dashed rgba(255,255,255,0.6); pointer-events: none; }
+        .btn-status { padding: 15px; font-size: 1.2rem; font-weight: 700; border-radius: 10px; }
+        .logo-cpm { width: 140px; max-width: 100%; height: auto; }
+        .box-login-merah { background-color: #E30613 !important; color: #FFFFFF !important; }
+        .box-login-merah .form-label { color: #FFFFFF !important; }
+        .btn-masuk-kuning { background-color: #FFC107 !important; color: #FFFFFF !important; border: none; transition: all 0.3s ease; }
+        .btn-masuk-kuning:hover { background-color: #E0A800 !important; color: #FFFFFF !important; transform: scale(1.02); }
+        #qr-reader, #toilet-qr-reader { width: 100%; max-width: 340px; margin: 0 auto; border: none !important; }
         
-        /* Area Monitor Styling */
-        .table-responsive-area { background: white; border-radius: 8px; padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .btn-detail-area { font-size: 0.75rem; padding: 0; text-decoration: none; color: #0d6efd; background: none; border: none; font-weight: 600; }
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+        /* Gaya Tambahan untuk Menu Pilihan */
+        .btn-menu-pilihan { padding: 20px; border-radius: 15px; transition: all 0.3s ease; text-align: left; background-color: #fff; border: 2px solid #eee; }
+        .btn-menu-pilihan:hover { border-color: #E30613; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
     </style>
 </head>
 <body>
 
-    <div id="loadingScreen" class="loading-overlay">
-        <div class="spinner-border text-danger" role="status"></div>
-        <span class="mt-2 fw-bold text-dark">Menghubungkan ke Server Database...</span>
-    </div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5 text-center">
+            
+            <img src="https://raw.githubusercontent.com/absensicpm-sketch/ScanQR/main/logo.png" alt="Logo CPM" class="logo-cpm mb-2">
+            <h4 class="fw-bold text-dark mb-4">CPM CONTROL SYSTEM</h4>
 
-    <div class="container py-4" style="max-width: 480px;">
-        
-        <div id="loginSection" class="card card-custom p-4 mt-3 bg-white">
-            <div class="text-center mb-4">
-                <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiwK9l69_uXW56XvE4M_EIn58gH_m7_WizRskVfW10H-N60pizYmREwK6pEis3rNqI-S6zR_V14I6fXvV2zM7p9w8zC5n_x7VvX4VzM/s1600/logo-cpm.png" alt="CPM Logo" style="max-height: 80px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/9166/9166942.png'">
-                <h4 class="fw-bold text-dark mt-3 mb-1">CPM CONTROL SYSTEM</h4>
-                <p class="text-muted small">Silakan masuk menggunakan Akun Kredensial Anda</p>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label small fw-bold text-secondary">USERNAME / ID LOGIN</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-user"></i></span>
-                    <input type="text" id="username" class="form-control border-start-0 " placeholder="Masukkan ID Login">
+            <div id="loginSection" class="card card-custom p-4 text-start box-login-merah">
+                <h5 class="fw-bold mb-3 text-center">🔐 PORTAL MASUK SISTEM</h5>
+                <div id="loginAlert" class="alert alert-warning text-dark fw-bold d-none" role="alert"></div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Username</label>
+                    <input type="text" id="username" class="form-control" placeholder="Masukkan nama pengguna">
                 </div>
-            </div>
-            
-            <div class="mb-4">
-                <label class="form-label small fw-bold text-secondary">PASSWORD SYSTEM</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
-                    <input type="password" id="password" class="form-control border-start-0 " placeholder="******">
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="Masukkan kata sandi">
                 </div>
+                
+                <button onclick="prosesLogin()" id="btnLogin" class="btn btn-masuk-kuning w-100 fw-bold py-2.5 fs-5 shadow-sm">Masuk Aplikasi</button>
             </div>
-            
-            <button id="btnSubmit" class="btn btn-danger btn-custom w-100" onclick="login()">
-                <i class="fa-solid fa-right-to-bracket me-2"></i>MASUK KE SISTEM
-            </button>
-        </div>
 
-        <div id="dashboardMenuSection" class="hidden-section">
-            <div class="header-banner text-center">
-                <h5 class="fw-bold mb-1">CPM PORTAL OPERASIONAL</h5>
-                <p class="small mb-0 opacity-75">Silakan pilih jenis aktivitas penugasan Anda</p>
-            </div>
-            
-            <div class="row g-3">
-                <div class="col-6">
-                    <button class="btn btn-success btn-menu w-100" onclick="pindahKeSectionAbsen()">
-                        <i class="fa-solid fa-qrcode"></i>
-                        <span>Absensi QR</span>
-                    </button>
+            <div id="dashboardMenuSection" class="card card-custom p-4 text-start bg-white hidden-section">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="badge bg-danger px-3 py-2">SESI AKTIF BERHASIL TERKUNCI</span>
+                    <button onclick="tutupDanLogout()" class="btn btn-sm btn-outline-danger fw-bold">🚪 Keluar</button>
                 </div>
-                <div class="col-6">
-                    <button class="btn btn-warning btn-menu w-100 text-dark" onclick="pindahKeSectionToilet()">
-                        <i class="fa-solid fa-restroom"></i>
-                        <span>Kontrol Toilet</span>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="text-center mt-5">
-                <button class="btn btn-sm btn-secondary px-4" style="border-radius:10px;" onclick="logout()">
-                    <i class="fa-solid fa-power-off me-2"></i>Keluar Akun
+                
+                <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-bars-staggered me-2 text-danger"></i>Pilih Menu Operasional:</h5>
+                
+                <button onclick="navigasiKeMenu('absen')" class="btn btn-menu-pilihan w-100 d-flex align-items-center mb-3">
+                    <div class="bg-primary-subtle text-primary rounded-3 p-3 me-3 fs-3"><i class="fa-solid fa-user-clock"></i></div>
+                    <div>
+                        <div class="fw-bold text-dark fs-5">Absensi Kehadiran</div>
+                        <div class="text-muted small">Scan QR Code untuk rekam Absen Masuk atau Pulang Kerja.</div>
+                    </div>
+                </button>
+                
+                <button onclick="navigasiKeMenu('toilet')" class="btn btn-menu-pilihan w-100 d-flex align-items-center">
+                    <div class="bg-success-subtle text-success rounded-3 p-3 me-3 fs-3"><i class="fa-solid fa-restroom"></i></div>
+                    <div>
+                        <div class="fw-bold text-dark fs-5">Higienitas &amp; Kontrol Toilet</div>
+                        <div class="text-muted small">Isi laporan inspeksi kebersihan fasilitas toilet berkala.</div>
+                    </div>
                 </button>
             </div>
-        </div>
 
-        <div id="karyawanSection" class="hidden-section">
-            <div class="card card-custom p-3 text-center mb-3 bg-white">
-                <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-camera-retro text-danger me-2"></i>AMBIL FOTO SELFIE DEPAN</h6>
-                <p class="text-muted small mb-3">Wajib menyalakan kamera depan sebagai bukti kehadiran fisik</p>
-                <div class="camera-container mb-2">
-                    <video id="webcam-preview" autoplay playsinline></video>
-                    <div class="overlay-guideline"></div>
+            <div id="karyawanSection" class="card card-custom p-4 bg-white text-start hidden-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button onclick="kembaliKeMenuUtama()" class="btn btn-sm btn-secondary fw-bold"><i class="fa-solid fa-chevron-left me-1"></i> Kembali</button>
+                    <span class="badge bg-success px-3 py-2">MENU: ABSENSI</span>
                 </div>
-                <canvas id="canvas-photo" class="d-none"></canvas>
-            </div>
+        
+                <div id="gpsAlert" class="alert alert-warning text-center fw-bold py-2.5 mb-3">Memindai koordinat lokasi satelit GPS...</div>
 
-            <div class="card card-custom p-3 text-center bg-white">
-                <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-qrcode text-danger me-2"></i>PINDAI QR SCANNER ABSEN</h6>
-                <div id="reader-qr" style="width: 100%; border-radius: 10px; overflow: hidden;"></div>
-                <div id="manual-name-display" class="alert alert-info mt-3 p-2 fw-bold small d-none"></div>
-            </div>
-        </div>
+                <div id="absensiForm" class="hidden-section">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cabang Kerja Terdeteksi:</label>
+                        <input type="text" id="cabangAktif" class="form-control fw-bold text-success bg-light" readonly>
+                    </div>
 
-        <div id="absensiForm" class="card card-custom p-4 mt-3 hidden-section bg-white">
-            <h5 class="fw-bold text-dark mb-3 text-center border-bottom pb-2">DATA VALIDASI ABSENSI</h5>
-            
-            <div class="mb-3">
-                <label class="form-label small fw-bold">ID Karyawan Terdeteksi</label>
-                <input type="text" id="idKaryawan" class="form-control bg-light fw-bold text-danger" readonly>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label small fw-bold">Tipe Registrasi Absen</label>
-                <select id="tipeAbsen" class="form-select fw-bold">
-                    <option value="MASUK">MASUK KERJA</option>
-                    <option value="PULANG">PULANG KERJA</option>
-                </select>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label small fw-bold">Keterangan / Berita Acara</label>
-                <textarea id="keterangan" class="form-control" rows="2" placeholder="Tulis keterangan jika ada"></textarea>
-            </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <input type="radio" class="btn-check" name="tipeAbsen" id="absenMasuk" value="MASUK" checked>
+                            <label class="btn btn-outline-success btn-status w-100" for="absenMasuk">☀️ MASUK</label>
+                        </div>
+                        <div class="col">
+                            <input type="radio" class="btn-check" name="tipeAbsen" id="absenPulang" value="PULANG">
+                            <label class="btn btn-outline-danger btn-status w-100" for="absenPulang">🌙 PULANG</label>
+                        </div>
+                    </div>
 
-            <input type="hidden" id="geoStamp">
-            <input type="hidden" id="geoCode">
-            <input type="hidden" id="geoAddress">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold d-block">Scan Barcode / QR Karyawan:</label>
+                        <button type="button" id="btnBukaScan" onclick="bukaScannerQR()" class="btn btn-primary w-100 fw-bold py-2 mb-2 shadow-sm">📷 Klik untuk Scan Barcode / QR</button>
+                        
+                        <div id="scannerContainer" class="p-2 border rounded mb-3 hidden-section text-center bg-light">
+                            <div id="qr-reader"></div>
+                            <button type="button" onclick="tutupScannerQR()" class="btn btn-sm btn-secondary mt-2">Batal Scan</button>
+                        </div>
+                    </div>
 
-            <div id="gps-status-box" class="alert alert-secondary p-2 small mb-3 text-center">
-                <i class="fa-solid fa-location-crosshairs fa-spin text-danger me-2"></i>Mencari Koordinat GPS...
-            </div>
-            
-            <div id="submitAlert" class="alert d-none text-center fw-bold small"></div>
-            
-            <button id="btnSubmitAbsenReal" class="btn btn-success btn-custom w-100 mb-2" onclick="prosesKirimDataAbsenKeDatabaseScript()">
-                <i class="fa-solid fa-cloud-arrow-up me-2"></i>KIRIM DATA ABSENSI
-            </button>
-            <button class="btn btn-sm btn-secondary w-100" style="border-radius:10px;" onclick="kembaliKeMenuDashboardUtama()">Batal</button>
-        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ID / Nama Karyawan Terdeteksi:</label>
+                        <input type="text" id="idKaryawan" class="form-control form-control-lg fw-bold text-primary bg-light" placeholder="Belum ada barcode yang di-scan" readonly>
+                    </div>
 
-        <div id="toiletSection" class="hidden-section">
-            <div class="card card-custom p-3 text-center bg-white mb-3">
-                <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-qrcode text-warning me-2"></i>SCAN QR BARCODE TOILET</h6>
-                <div id="reader-qr-toilet" style="width: 100%; border-radius: 10px; overflow: hidden;"></div>
-            </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Keterangan Tambahan (Opsional):</label>
+                        <input type="text" id="keterangan" class="form-control" placeholder="Isi jika terlambat / dinas luar">
+                    </div>
 
-            <div id="formKontrolToilet" class="card card-custom p-4 bg-white hidden-section">
-                <h5 class="fw-bold text-dark mb-3 text-center border-bottom pb-2">CHECKLIST KONDISI TOILET</h5>
-                
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">ID / Lokasi Toilet</label>
-                    <input type="text" id="tIdToilet" class="form-control bg-light fw-bold text-warning" readonly>
+                    <div class="mb-4 text-center">
+                        <label class="form-label d-block text-start fw-bold">Kamera Pindai Wajah Aktif:</label>
+                        <div class="camera-container">
+                            <video id="webcam-preview" autoplay playsinline></video>
+                            <div class="camera-overlay"></div>
+                            <div class="camera-grid"></div>
+                        </div>
+                    </div>
+
+                    <div id="submitAlert" class="alert d-none" role="alert"></div>
+                    <button onclick="kirimAbsensi()" id="btnSubmit" class="btn btn-success w-100 fw-bold py-3 fs-5 shadow">📤 VERIFIKASI & KIRIM ABSENSI</button>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">Nama Petugas Pemeriksa</label>
-                    <input type="text" id="tNamaPetugas" class="form-control" placeholder="Masukkan nama Anda">
-                </div>
-                
-                <div class="mb-3"><label class="form-label small fw-bold">1. Kebersihan Lantai</label><select id="tLantai" class="form-select"><option value="BERSIH & KERING">BERSIH & KERING</option><option value="BASAH / KOTOR">BASAH / KOTOR</option></select></div>
-                <div class="mb-3"><label class="form-label small fw-bold">2. Kebersihan Wastafel</label><select id="tWastafel" class="form-select"><option value="BERSIH / JERNIH">BERSIH / JERNIH</option><option value="KOTOR / MACET">KOTOR / MACET</option></select></div>
-                <div class="mb-3"><label class="form-label small fw-bold">3. Sabun & Tisu</label><select id="tSabun" class="form-select"><option value="TERSEDIA / CUKUP">TERSEDIA / CUKUP</option><option value="HABIS / KOSONG">HABIS / KOSONG</option></select></div>
-                <div class="mb-3"><label class="form-label small fw-bold">4. Aroma</label><select id="tBau" class="form-select"><option value="WANGI / NETRAL">WANGI / NETRAL</option><option value="BAU KURANG SEDAP">BAU KURANG SEDAP</option></select></div>
-                <div class="mb-3"><label class="form-label small fw-bold">5. Kondisi Kloset</label><select id="tClosetUrinal" class="form-select"><option value="BERSIH & FLUSH BERFUNGSI">BERSIH & FLUSH BERFUNGSI</option><option value="KOTOR / TERSUMBAT">KOTOR / TERSUMBAT</option></select></div>
-                <div class="mb-3"><label class="form-label small fw-bold">6. Tempat Sampah</label><select id="tTempatSampah" class="form-select"><option value="KOSONG / RAPI">KOSONG / RAPI</option><option value="PENUH / BERANTAKAN">PENUH / BERANTAKAN</option></select></div>
-                <div class="mb-3"><label class="form-label small fw-bold">7. Kondisi Plafon</label><select id="tPlafon" class="form-select"><option value="BERSIH / BEBAS SANGKRA">BERSIH / BEBAS SANGKRA</option><option value="BOCOR / BERJAMUR">BOCOR / BERJAMUR</option></select></div>
-                <div class="mb-3"><label class="form-label small fw-bold">8. Penerangan</label><select id="tPenerangan" class="form-select"><option value="TERANG / MENYALA">TERANG / MENYALA</option><option value="REDUP / MATI">REDUP / MATI</option></select></div>
-                
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">Catatan Tambahan Temuan</label>
-                    <textarea id="tCatatan" class="form-control" rows="2"></textarea>
-                </div>
-                
-                <div id="toiletSubmitAlert" class="alert d-none text-center fw-bold small"></div>
-                <button id="btnSubmitToilet" class="btn btn-warning btn-custom w-100 text-dark fw-bold mb-2" onclick="prosesKirimDataToiletKeDatabaseScript()">KIRIM LAPORAN TOILET</button>
-            </div>
-            
-            <div class="text-center mt-4">
-                <button class="btn btn-sm btn-secondary px-3" onclick="kembaliKeMenuDashboardUtama()">Batal</button>
-            </div>
-        </div>
-
-        <div id="panelDashboardKepalaArea" class="hidden-section">
-            <div class="card p-3 mb-3 border-0 shadow-sm bg-white text-center position-relative" style="border-radius:15px;">
-                <h5 class="fw-bold mb-1 text-dark" id="displayNamaArea">Area: -</h5>
-                <small class="text-muted" id="displayTanggalKepalaArea">Tanggal Hari Ini</small>
-                <button class="btn btn-sm btn-dark position-absolute end-0 top-50 translate-middle-y me-3" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i></button>
             </div>
 
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <div class="card p-3 text-center text-white bg-success border-0 shadow-sm" style="border-radius: 12px;">
-                        <small class="fw-bold" style="font-size: 0.7rem;">TOTAL HADIR HARI INI</small>
-                        <h3 class="fw-bold my-1" id="statHadir">0</h3>
+            <div id="toiletSection" class="card card-custom p-4 bg-white text-start hidden-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button onclick="kembaliKeMenuUtama()" class="btn btn-sm btn-secondary fw-bold"><i class="fa-solid fa-chevron-left me-1"></i> Kembali</button>
+                    <span class="badge bg-emerald text-white px-3 py-2" style="background-color: #198754;">MENU: TOILET INSPECTION</span>
+                </div>
+
+                <div id="toiletScanContainer">
+                    <label class="form-label fw-bold d-block">Scan QR Code di Lokasi Toilet:</label>
+                    <button type="button" id="btnBukaScanToilet" onclick="bukaScannerQRToilet()" class="btn btn-success w-100 fw-bold py-2 mb-2 shadow-sm">📷 Klik untuk Scan QR Toilet</button>
+                    
+                    <div id="toiletScannerBox" class="p-2 border rounded mb-3 hidden-section text-center bg-light">
+                        <div id="toilet-qr-reader"></div>
+                        <button type="button" onclick="tutupScannerQRToilet()" class="btn btn-sm btn-secondary mt-2">Batal Scan</button>
                     </div>
                 </div>
-                <div class="col-6">
-                    <div class="card p-3 text-center text-dark bg-warning border-0 shadow-sm" style="border-radius: 12px;">
-                        <small class="fw-bold" style="font-size: 0.7rem;">TERLAMBAT MASUK</small>
-                        <h3 class="fw-bold my-1" id="statTerlambat">0</h3>
+
+                <div id="toiletForm" class="hidden-section">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ID / Lokasi Toilet Terbaca:</label>
+                        <input type="text" id="idToilet" class="form-control fw-bold text-success bg-light" readonly>
                     </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">1. Kondisi Lantai</label>
+                            <select id="tLantai" class="form-select form-select-sm"><option value="Kering">Kering / Clean</option><option value="Basah/Kotor">Basah / Kotor</option></select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">2. Wastafel &amp; Cermin</label>
+                            <select id="tWastafel" class="form-select form-select-sm"><option value="Bersih">Bersih</option><option value="Kotor">Kotor</option></select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">3. Sabun &amp; Tisu</label>
+                            <select id="tSabun" class="form-select form-select-sm"><option value="Lengkap">Lengkap</option><option value="Habis">Habis</option></select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">4. Kondisi Aroma</label>
+                            <select id="tBau" class="form-select form-select-sm"><option value="Wangi/Netral">Wangi/Netral</option><option value="Bau">Bau</option></select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">5. Closet &amp; Urinal</label>
+                            <select id="tCloset" class="form-select form-select-sm"><option value="Bersih">Bersih &amp; Lancar</option><option value="Kotor/Mampet">Kotor / Mampet</option></select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">6. Tempat Sampah</label>
+                            <select id="tSampah" class="form-select form-select-sm"><option value="Kosong">Kosong / Rapi</option><option value="Penuh">Penuh / Kotor</option></select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">7. Kondisi Plafon</label>
+                            <select id="tPlafon" class="form-select form-select-sm"><option value="Bersih">Bersih / Aman</option><option value="Bocor/Berjamur">Bocor / Berjamur</option></select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">8. Penerangan Lampu</label>
+                            <select id="tLampu" class="form-select form-select-sm"><option value="Terang">Terang / Nyala</option><option value="Mati/Redup">Mati / Redup</option></select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">9. Catatan Lapangan (Ketik Manual)</label>
+                        <input type="text" id="tCatatan" class="form-control form-control-sm" placeholder="Contoh: Kran wastafel bocor / Aman">
+                    </div>
+
+                    <div class="mb-4 text-center">
+                        <label class="form-label d-block text-start fw-bold">Kamera Verifikasi Petugas Aktif:</label>
+                        <div class="camera-container">
+                            <video id="toilet-webcam-preview" autoplay playsinline style="width: 100%; transform: scaleX(-1); background-color: #222; height: 260px; object-fit: cover;"></video>
+                            <div class="camera-overlay"></div>
+                            <div class="camera-grid"></div>
+                        </div>
+                    </div>
+
+                    <div id="toiletSubmitAlert" class="alert d-none" role="alert"></div>
+                    <button onclick="kirimLaporanToilet()" id="btnSubmitToilet" class="btn btn-success w-100 fw-bold py-3 fs-5 shadow">📤 KIRIM LAPORAN INSPEKSI TOILET</button>
                 </div>
             </div>
 
-            <div class="table-responsive-area p-2 bg-white shadow-sm mb-5" style="border-radius: 12px;">
-                <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.85rem;">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Karyawan</th>
-                            <th>Masuk</th>
-                            <th>Pulang</th>
-                            <th class="text-center">Foto</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bodyTabelMonitor"></tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="modal fade" id="modalPilihBulan" data-bs-backdrop="static" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content"><div class="modal-header bg-light"><h6 class="modal-title fw-bold" id="titleModalBulan">Pilih Bulan</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-3" id="wrapperTombolBulan"></div></div>
+            <p class="text-muted small mt-4">© 2026 CPM Management System</p>
         </div>
     </div>
-    <div class="modal fade" id="modalDetailLog" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-danger text-white"><h6 class="modal-title fw-bold" id="titleModalDetail">Detail Log</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-0"><table class="table table-striped table-sm mb-0 text-center" style="font-size: 0.8rem;"><thead class="table-dark"><tr><th>Tanggal</th><th>Masuk</th><th>Pulang</th></tr></thead><tbody id="bodyTabelDetailLog"></tbody></table></div></div></div>
+</div>
+
+<div class="modal fade" id="cpmModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+      <div id="modalHeaderBg" class="modal-header text-white" style="border-radius: 15px 15px 0 0;">
+        <h5 class="modal-title fw-bold" id="cpmModalTitle">Judul Pesan</h5>
+      </div>
+      <div class="modal-body fs-6 p-4" id="cpmModalBody" style="white-space: pre-line; line-height: 1.6;">
+        Isi pesan...
+      </div>
+      <div class="modal-footer border-0 d-flex justify-content-end" id="cpmModalFooter"></div>
     </div>
+  </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzYm0ZKwYi5jQthj0oPMwkP_uvnxZmKijAGRjahzDHIR3c5YPD2Z2IgChb9oImQmepPcg/exec";
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    let html5QrcodeScanner = null;
-    let html5QrcodeScannerToilet = null;
+<script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzYm0ZKwYi5jQthj0oPMwkP_uvnxZmKijAGRjahzDHIR3c5YPD2Z2IgChb9oImQmepPcg/exec";
+    let daftarCabang = [];
+    let userCoords = "";
+    let cabangTerpilih = "";
     let localStream = null;
-    let scanResultKaryawanID = "";
+    let html5QrcodeScanner = null;
+    
+    // Variabel Tambahan Toilet
+    let html5QrcodeScannerToilet = null;
     let scanResultToiletID = "";
-    let sessionUserArea = "";
-    let namaKaryawanTerpilih = "";
-    let modalBulanObj = null;
-    let modalDetailObj = null;
 
-    window.addEventListener('DOMContentLoaded', () => {
-        modalBulanObj = new bootstrap.Modal(document.getElementById('modalPilihBulan'));
-        modalDetailObj = new bootstrap.Modal(document.getElementById('modalDetailLog'));
-        if(document.getElementById('displayTanggalKepalaArea')){
-            document.getElementById('displayTanggalKepalaArea').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        }
-        mulaiAmbilKoordinatGpsLatarBelakang();
-    });
+    function prosesLogin() {
+        const user = document.getElementById("username").value.trim();
+        const pass = document.getElementById("password").value;
+        const btn = document.getElementById("btnLogin");
+        const alertBox = document.getElementById("loginAlert");
 
-    function showLoadingGlobal(status) {
-        document.getElementById('loadingScreen').style.display = status ? 'flex' : 'none';
-    }
+        if(!user || !pass) return;
+        btn.disabled = true;
+        btn.innerText = "Memproses...";
+        alertBox.classList.add("d-none");
 
-    // FUNGSI LOGIN GLOBAL AMAN
-    function login() {
-        var user = document.getElementById("username").value.trim();
-        var pass = document.getElementById("password").value.trim();
-        if (!user || !pass) { alert("Username dan Password harus diisi!"); return; }
-
-        document.getElementById("btnSubmit").disabled = true;
-        showLoadingGlobal(true);
-
-        fetch(URL_WEB_APP, {
+        fetch(WEB_APP_URL, {
             method: "POST",
+            mode: "cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ aksi: "login", username: user, password: pass })
         })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById("btnSubmit").disabled = false;
-            showLoadingGlobal(false);
-            if (data.status === "success") {
-                if (data.role === "karyawan") {
-                    document.getElementById("loginSection").classList.add("hidden-section");
-                    document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
-                } else if (data.role === "kepala_area" || data.role === "kacab") {
-                    sessionUserArea = data.username;
-                    document.getElementById("loginSection").classList.add("hidden-section");
-                    document.getElementById("displayNamaArea").innerText = "Area: " + data.namaArea;
-                    document.getElementById("panelDashboardKepalaArea").classList.remove("hidden-section");
-                    muatLiveMonitorHariIni();
-                }
-            } else { alert(data.message); }
+        .then(res => res.json())
+        .then(res => {
+            btn.disabled = false;
+            btn.innerText = "Masuk Aplikasi";
+            if(res.status === "success") {
+                document.getElementById("loginSection").classList.add("hidden-section");
+                daftarCabang = res.cabangList;
+                // Alihkan ke halaman Menu Utama (Dashboard), bukan langsung ke form absen
+                document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
+                mulaiTrackingGPS(); // Tetap lock koordinat secara pasif sejak awal login
+            } else {
+                alertBox.innerText = res.message;
+                alertBox.classList.remove("d-none");
+            }
         })
-        .catch(error => {
-            document.getElementById("btnSubmit").disabled = false;
-            showLoadingGlobal(false);
-            alert("Gagal terhubung ke database. Pastikan deployment di script sudah di-update ke versi terbaru!");
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerText = "Masuk Aplikasi";
+            alertBox.innerText = "Koneksi server terputus/ditolak.";
+            alertBox.classList.remove("d-none");
         });
     }
 
-    function muatLiveMonitorHariIni() {
-        fetch(URL_WEB_APP, { method: "POST", body: JSON.stringify({ aksi: "getMonitorHariIni", username: sessionUserArea }) })
-        .then(res => res.json()).then(res => { if(res.status === "success") renderTabelMonitorArea(res.data); });
-    }
-
-    function renderTabelMonitorArea(data) {
-        const tbody = document.getElementById('bodyTabelMonitor'); tbody.innerHTML = "";
-        let countHadir = 0, countTerlambat = 0;
-        if(!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Belum ada data absensi hari ini.</td></tr>`;
-            return;
+    // CONTROLLER ROUTING NAVIGASI INTERN PORTAL
+    function navigasiKeMenu(pilihan) {
+        document.getElementById("dashboardMenuSection").classList.add("hidden-section");
+        
+        if (pilihan === "absen") {
+            document.getElementById("karyawanSection").classList.remove("hidden-section");
+            mulaiKameraSelfie("webcam-preview");
+        } else if (pilihan === "toilet") {
+            document.getElementById("toiletSection").classList.remove("hidden-section");
+            document.getElementById("toiletScanContainer").classList.remove("hidden-section");
+            document.getElementById("toiletForm").classList.add("hidden-section");
         }
-        data.forEach(item => {
-            countHadir++;
-            if(item.masuk !== "--:--" && item.masuk > "08:00") countTerlambat++;
-            let cellFoto = item.foto && item.foto.length > 30 ? `<button class="btn btn-sm btn-outline-primary py-0 px-2" onclick="bukaJendelaFotoBase64('${item.foto}')"><i class="fa-solid fa-camera"></i></button>` : `-`;
-            tbody.innerHTML += `<tr><td><b>${item.nama}</b><br><button class="btn-detail-area" onclick="bukaModalFilterBulanArea('${item.nama}')">Detail</button></td><td class="text-success">${item.masuk}</td><td class="text-primary">${item.pulang}</td><td class="text-center">${cellFoto}</td></tr>`;
-        });
-        document.getElementById('statHadir').innerText = countHadir;
-        document.getElementById('statTerlambat').innerText = countTerlambat;
     }
 
-    function bukaModalFilterBulanArea(namaKaryawan) {
-        namaKaryawanTerpilih = namaKaryawan;
-        document.getElementById('titleModalBulan').innerText = "Filter: " + namaKaryawan;
-        showLoadingGlobal(true);
-        fetch(URL_WEB_APP, { method: "POST", body: JSON.stringify({ aksi: "getDaftarBulanKaryawan", username: sessionUserArea }) })
-        .then(res => res.json()).then(res => {
-            showLoadingGlobal(false);
-            if(res.status === "success") {
-                const wrapper = document.getElementById('wrapperTombolBulan'); wrapper.innerHTML = "";
-                res.daftarBulan.forEach(b => { wrapper.innerHTML += `<button class="btn btn-outline-dark btn-sm w-100 mb-2" onclick="prosesMuatDetailLogHariBulan('${b}')">${b}</button>`; });
-                modalBulanObj.show();
-            }
-        }).catch(() => showLoadingGlobal(false));
-    }
-
-    function prosesMuatDetailLogHariBulan(sheet) {
-        modalBulanObj.hide(); showLoadingGlobal(true);
-        fetch(URL_WEB_APP, { method: "POST", body: JSON.stringify({ aksi: "getDetailLogBulanan", username: sessionUserArea, namaKaryawan: namaKaryawanTerpilih, namaSheetBulan: sheet }) })
-        .then(res => res.json()).then(res => {
-            showLoadingGlobal(false);
-            if(res.status === "success") {
-                document.getElementById('titleModalDetail').innerText = res.namaKaryawan + " (" + res.bulan + ")";
-                const tbody = document.getElementById('bodyTabelDetailLog'); tbody.innerHTML = "";
-                res.logHari.forEach(l => { tbody.innerHTML += `<tr><td>${l.tanggal}</td><td class="text-success">${l.masuk}</td><td class="text-primary">${l.pulang}</td></tr>`; });
-                modalDetailObj.show();
-            }
-        }).catch(() => showLoadingGlobal(false));
-    }
-
-    function bukaJendelaFotoBase64(s) { var img = new Image(); img.src = s; var w = window.open(""); w.document.write(img.outerHTML); }
-
-    // PEMBENAHAN ALUR PINDAH HALAMAN - TIDAK MENYEMBUNYIKAN QR-READER
-    function pindahKeSectionAbsen() {
-        document.getElementById("dashboardMenuSection").classList.add("hidden-section");
-        document.getElementById("karyawanSection").classList.remove("hidden-section");
-        startWebcam();
-        initQrCodeScannerKaryawan();
-    }
-
-    function pindahKeSectionToilet() {
-        document.getElementById("dashboardMenuSection").classList.add("hidden-section");
-        document.getElementById("toiletSection").classList.remove("hidden-section");
-        initQrCodeScannerToilet();
-    }
-
-    function kembaliKeMenuDashboardUtama() {
+    function kembaliKeMenuUtama() {
+        // Matikan semua hardware kamera
         matikanSemuaAliranKamera();
-        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) html5QrcodeScanner.stop();
-        if (html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) html5QrcodeScannerToilet.stop();
+        tutupScannerQR();
+        tutupScannerQRToilet();
+        
+        // Sembunyikan semua workspace, kembalikan dashboard menu pilihan
         document.getElementById("karyawanSection").classList.add("hidden-section");
         document.getElementById("toiletSection").classList.add("hidden-section");
-        document.getElementById("absensiForm").classList.add("hidden-section");
-        document.getElementById("formKontrolToilet").classList.add("hidden-section");
         document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
     }
 
-    function startWebcam() {
-        var video = document.getElementById('webcam-preview');
+    /* KONTROL SCANNER QR ABSENSI (ASLI) */
+    function bukaScannerQR() {
+        document.getElementById("btnBukaScan").disabled = true;
+        matikanSemuaAliranKamera();
+
+        setTimeout(() => {
+            document.getElementById("scannerContainer").classList.remove("hidden-section");
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            }
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                { fps: 15, qrbox: { width: 250, height: 150 } },
+                (decodedText) => {
+                    const idHasilScan = decodedText.toUpperCase().trim();
+                    document.getElementById("idKaryawan").value = "Mencari nama untuk " + idHasilScan + "...";
+                    tutupScannerQR();
+
+                    fetch(WEB_APP_URL, {
+                        method: "POST",
+                        mode: "cors",
+                        headers: { "Content-Type": "text/plain;charset=utf-8" },
+                        body: JSON.stringify({ aksi: "cariNama", idKaryawan: idHasilScan })
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.status === "success") {
+                            document.getElementById("idKaryawan").value = idHasilScan + " - " + res.namaKaryawan;
+                        } else {
+                            document.getElementById("idKaryawan").value = idHasilScan + " - (Nama Tidak Terdaftar)";
+                        }
+                    })
+                    .catch(() => {
+                        document.getElementById("idKaryawan").value = idHasilScan;
+                    });
+                },
+                (errorMessage) => { }
+            ).catch(err => {
+                alert("Gagal mengaktifkan kamera belakang. Pastikan izin kamera aktif.");
+                tutupScannerQR();
+            });
+        }, 300);
+    }
+
+    function tutupScannerQR() {
+        document.getElementById("btnBukaScan").disabled = false;
+        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById("scannerContainer").classList.add("hidden-section");
+                mulaiKameraSelfie("webcam-preview");
+            }).catch(() => {
+                document.getElementById("scannerContainer").classList.add("hidden-section");
+                mulaiKameraSelfie("webcam-preview");
+            });
+        } else {
+            document.getElementById("scannerContainer").classList.add("hidden-section");
+            if(!document.getElementById("karyawanSection").classList.contains("hidden-section")) {
+                mulaiKameraSelfie("webcam-preview");
+            }
+        }
+    }
+
+    /* KONTROL SCANNER QR TOILET (BARU) */
+    function bukaScannerQRToilet() {
+        document.getElementById("btnBukaScanToilet").disabled = true;
+        matikanSemuaAliranKamera();
+
+        setTimeout(() => {
+            document.getElementById("toiletScannerBox").classList.remove("hidden-section");
+            if (!html5QrcodeScannerToilet) {
+                html5QrcodeScannerToilet = new Html5Qrcode("toilet-qr-reader");
+            }
+            
+            html5QrcodeScannerToilet.start(
+                { facingMode: "environment" }, 
+                { fps: 15, qrbox: { width: 250, height: 150 } },
+                (decodedText) => {
+                    scanResultToiletID = decodedText.trim();
+                    document.getElementById("idToilet").value = scanResultToiletID;
+                    
+                    tutupScannerQRToilet();
+                    document.getElementById("toiletScanContainer").classList.add("hidden-section");
+                    document.getElementById("toiletForm").classList.remove("hidden-section");
+                    mulaiKameraSelfie("toilet-webcam-preview");
+                },
+                (errorMessage) => { }
+            ).catch(err => {
+                alert("Gagal mengaktifkan kamera belakang toilet.");
+                tutupScannerQRToilet();
+            });
+        }, 300);
+    }
+
+    function tutupScannerQRToilet() {
+        document.getElementById("btnBukaScanToilet").disabled = false;
+        if (html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) {
+            html5QrcodeScannerToilet.stop().then(() => {
+                document.getElementById("toiletScannerBox").classList.add("hidden-section");
+            }).catch(() => {
+                document.getElementById("toiletScannerBox").classList.add("hidden-section");
+            });
+        } else {
+            document.getElementById("toiletScannerBox").classList.add("hidden-section");
+        }
+    }
+
+    /* KONTROL GPS GEOLOCATION ENGINE (ASLI) */
+    function mulaiTrackingGPS() {
+        const gpsAlert = document.getElementById("gpsAlert");
+        if (!navigator.geolocation) {
+            gpsAlert.innerText = "Browser tidak mendukung GPS.";
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                userCoords = `${lat}, ${lng}`;
+                
+                let ketemuCabang = null;
+                for (let cb of daftarCabang) {
+                    let jarak = hitungJarakMeter(lat, lng, cb.lat, cb.lng);
+                    if (jarak <= cb.radius) {
+                        ketemuCabang = cb.nama;
+                        break;
+                    }
+                }
+
+                if (ketemuCabang) {
+                    cabangTerpilih = ketemuCabang;
+                    gpsAlert.className = "alert alert-success text-center fw-bold py-2.5";
+                    gpsAlert.innerHTML = `✅ LOKASI VALID: <strong>${ketemuCabang}</strong>`;
+                    document.getElementById("cabangAktif").value = ketemuCabang;
+                    document.getElementById("absensiForm").classList.remove("hidden-section");
+                } else {
+                    gpsAlert.className = "alert alert-danger text-center fw-bold py-2.5";
+                    gpsAlert.innerText = "❌ AKSES DITOLAK: Di luar radius cabang (" + userCoords + ")";
+                }
+            },
+            (err) => {
+                gpsAlert.innerText = "Gagal mengunci GPS. Aktifkan lokasi perangkat.";
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    }
+
+    function hitungJarakMeter(lat1, lon1, lat2, lon2) {
+        const R = 6371e3;
+        const phi1 = lat1 * Math.PI/180;
+        const phi2 = lat2 * Math.PI/180;
+        const deltaPhi = (lat2-lat1) * Math.PI/180;
+        const deltaLambda = (lon2-lon1) * Math.PI/180;
+        const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
+                  Math.cos(phi1) * Math.cos(phi2) *
+                  Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    /* DRIVER MANAGEMENT WEBCAM HARDWARE TRACING */
+    async function mulaiKameraSelfie(idElementTarget) {
+        matikanSemuaAliranKamera();
+        const videoElement = document.getElementById(idElementTarget);
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(s => { localStream = s; video.srcObject = s; });
-        }
-    }
-
-    function matikanSemuaAliranKamera() {
-        if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-    }
-
-    // INTI PEMBENAHAN QR-SCANNER AGAR LAYOUT TETAP UTUH BERSAMA KAMERA
-    function initQrCodeScannerKaryawan() {
-        if(!html5QrcodeScanner) {
-            html5QrcodeScanner = new Html5QrcodeScanner("reader-qr", { fps: 10, qrbox: { width: 250, height: 250 }, rememberLastUsedCamera: true }, false);
-        }
-        html5QrcodeScanner.render((text) => {
-            if (text !== scanResultKaryawanID) {
-                scanResultKaryawanID = text;
-                document.getElementById("idKaryawan").value = text;
-                var b = document.getElementById("manual-name-display"); b.classList.remove("d-none"); b.innerHTML = "ID Terbaca: " + text;
-                document.getElementById("absensiForm").classList.remove("hidden-section");
-                mulaiAmbilKoordinatGpsLatarBelakang();
-            }
-        });
-    }
-
-    function initQrCodeScannerToilet() {
-        if(!html5QrcodeScannerToilet) {
-            html5QrcodeScannerToilet = new Html5QrcodeScanner("reader-qr-toilet", { fps: 10, qrbox: { width: 250, height: 250 }, rememberLastUsedCamera: true }, false);
-        }
-        html5QrcodeScannerToilet.render((text) => {
-            if (text !== scanResultToiletID) {
-                scanResultToiletID = text;
-                document.getElementById("tIdToilet").value = text;
-                document.getElementById("formKontrolToilet").classList.remove("hidden-section");
-            }
-        });
-    }
-
-    function mulaiAmbilKoordinatGpsLatarBelakang() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(p => {
-                document.getElementById("geoStamp").value = new Date().toLocaleString('id-ID');
-                document.getElementById("geoCode").value = p.coords.latitude + ", " + p.coords.longitude;
-                document.getElementById("geoAddress").value = "Koordinat Terkunci";
-                document.getElementById("gps-status-box").className = "alert alert-success p-2 small mb-3 text-center fw-bold";
-                document.getElementById("gps-status-box").innerHTML = "GPS Berhasil Terkunci!";
-            }, () => {
-                document.getElementById("geoCode").value = "-6.1753, 106.8271";
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
+            .then(function(stream) {
+                localStream = stream;
+                videoElement.srcObject = stream;
+            })
+            .catch(function(error) {
+                console.error("Gagal memuat kamera depan (" + idElementTarget + "):", error);
             });
         }
     }
 
-    function prosesKirimDataAbsenKeDatabaseScript() {
-        var video = document.getElementById('webcam-preview');
-        var canvas = document.getElementById('canvas-photo');
-        var ctx = canvas.getContext('2d');
-        canvas.width = video.videoWidth || 320; canvas.height = video.videoHeight || 240;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        let base64 = canvas.toDataURL('image/jpeg', 0.7);
-
-        document.getElementById("btnSubmitAbsenReal").disabled = true;
-        let box = document.getElementById("submitAlert"); box.classList.remove("d-none"); box.className = "alert alert-info text-center small"; box.innerText = "Mengunggah data...";
-
-        fetch(URL_WEB_APP, {
-            method: "POST",
-            body: JSON.stringify({
-                aksi: "absen", idKaryawan: document.getElementById("idKaryawan").value, cabang: "PT IMORA MOTOR",
-                tipeAbsen: document.getElementById("tipeAbsen").value, keterangan: document.getElementById("keterangan").value,
-                foto: base64, geoStamp: document.getElementById("geoStamp").value, geoCode: document.getElementById("geoCode").value, geoAddress: document.getElementById("geoAddress").value
-            })
-        }).then(res => res.json()).then(res => {
-            if(res.status === "success") { box.className = "alert alert-success text-center small"; box.innerText = res.message; setTimeout(logout, 2000); }
-            else { box.className = "alert alert-danger text-center small"; box.innerText = res.message; document.getElementById("btnSubmitAbsenReal").disabled = false; }
-        }).catch(() => { document.getElementById("btnSubmitAbsenReal").disabled = false; });
+    function matikanSemuaAliranKamera() {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
+        }
+        document.getElementById('webcam-preview').srcObject = null;
+        document.getElementById('toilet-webcam-preview').srcObject = null;
     }
 
-    function prosesKirimDataToiletKeDatabaseScript() {
-        document.getElementById("btnSubmitToilet").disabled = true;
-        fetch(URL_WEB_APP, {
+    function ambilSnapshotBase64(idVideoSource) {
+        const video = document.getElementById(idVideoSource);
+        if(!video || !video.srcObject) return "";
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = 320;
+        canvas.height = 240;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1); 
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/jpeg', 0.4); // Kompresi 0.4 agar enteng ke Sheets
+    }
+
+    /* ENGINE KIKIM ABSENSI (ASLI) */
+    function kirimAbsensi() {
+        const idKaryawan = document.getElementById("idKaryawan").value.trim();
+        const tipe = document.querySelector('input[name="tipeAbsen"]:checked').value;
+        if(!idKaryawan || idKaryawan.includes("Belum ada")) {
+            alert("Anda wajib melakukan Scan Barcode/QR Code terlebih dahulu!");
+            return;
+        }
+
+        const namaCabang = cabangTerpilih;
+        let namaSaja = idKaryawan;
+        if (idKaryawan.includes(" - ")) {
+            namaSaja = idKaryawan.split(" - ")[1].trim();
+        }
+
+        const sekarang = new Date();
+        const opsiTanggal = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const tanggalTeks = sekarang.toLocaleDateString('id-ID', opsiTanggal);
+        const jamTeks = sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " WIB";
+        
+        const teksRangkuman = 
+            "📌 <strong>Nama Karyawan</strong> : " + namaSaja + "\n" +
+            "📌 <strong>Status Absen</strong>  : " + tipe + "\n" +
+            "📌 <strong>Lokasi/Area</strong>   : " + namaCabang + "\n" +
+            "📌 <strong>Tanggal</strong>       : " + tanggalTeks + "\n" +
+            "📌 <strong>Waktu/Jam</strong>     : " + jamTeks + "\n\n" +
+            "Apakah data di atas sudah benar? Klik <strong>KIRIM DATA</strong> untuk memproses ke database.";
+            
+        document.getElementById("cpmModalTitle").innerHTML = "⚠️ PERIKSA KEMBALI DATA ABSENSI";
+        document.getElementById("modalHeaderBg").className = "modal-header bg-warning text-dark";
+        document.getElementById("cpmModalBody").innerHTML = teksRangkuman;
+        document.getElementById("cpmModalFooter").innerHTML = `
+            <button type="button" class="btn btn-secondary fw-bold px-3" data-bs-dismiss="modal">❌ Batal</button>
+            <button type="button" class="btn btn-primary fw-bold px-4" onclick="eksekusiKirimKeServer()">📤 Kirim Data</button>
+        `;
+        var myModal = new bootstrap.Modal(document.getElementById('cpmModal'));
+        myModal.show();
+    }
+
+    function eksekusiKirimKeServer() {
+        var modalElement = document.getElementById('cpmModal');
+        var modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if(modalInstance) modalInstance.hide();
+
+        const idKaryawan = document.getElementById("idKaryawan").value.trim();
+        const tipe = document.querySelector('input[name="tipeAbsen"]:checked').value;
+        const ket = document.getElementById("keterangan").value;
+        const btn = document.getElementById("btnSubmit");
+        const alertBox = document.getElementById("submitAlert");
+
+        btn.disabled = true;
+        alertBox.className = "alert alert-info mt-2 fw-bold";
+        alertBox.innerText = "Memproses kirim data absensi...";
+        alertBox.classList.remove("d-none");
+
+        const fotoData = ambilSnapshotBase64('webcam-preview');
+        fetch(WEB_APP_URL, {
             method: "POST",
+            mode: "cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
-                aksi: "kontrolToilet", idToilet: document.getElementById("tIdToilet").value, namaPetugas: document.getElementById("tNamaPetugas").value,
-                statusLantai: document.getElementById("tLantai").value, statusWastafel: document.getElementById("tWastafel").value, statusSabun: document.getElementById("tSabun").value,
-                statusBau: document.getElementById("tBau").value, closetUrinal: document.getElementById("tClosetUrinal").value, tempatSampah: document.getElementById("tTempatSampah").value,
-                plafon: document.getElementById("tPlafon").value, penerangan: document.getElementById("tPenerangan").value, catatan: document.getElementById("tCatatan").value, geoCode: document.getElementById("geoCode").value
+                aksi: "absen", idKaryawan: idKaryawan, tipeAbsen: tipe, cabang: cabangTerpilih, keterangan: ket, foto: fotoData, coords: userCoords
             })
-        }).then(res => res.json()).then(res => { setTimeout(logout, 2000); }).catch(() => { document.getElementById("btnSubmitToilet").disabled = false; });
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res.status === "success") {
+                alertBox.className = "alert alert-success mt-2 fw-bold text-center";
+                alertBox.innerText = res.message;
+                
+                let salamTambahan = (tipe === "MASUK") ? "Selamat Bekerja.." : "Selamat Jalan..";
+
+                setTimeout(() => {
+                    document.getElementById("cpmModalTitle").innerHTML = "🎉 ABSENSI BERHASIL!";
+                    document.getElementById("modalHeaderBg").className = "modal-header bg-success text-white";
+                    document.getElementById("cpmModalBody").innerHTML = 
+                        "Terima Kasih Absensi Anda Sudah Terekam di database CPM Management System.\n\n<strong>" + salamTambahan + "</strong>";
+                    document.getElementById("cpmModalFooter").innerHTML = `
+                        <button type="button" class="btn btn-success fw-bold px-5" onclick="tutupDanLogout()">OK</button>
+                    `;
+                    var modalSukses = new bootstrap.Modal(document.getElementById('cpmModal'));
+                    modalSukses.show();
+                }, 400);
+                
+            } else {
+                btn.disabled = false;
+                alertBox.className = "alert alert-danger mt-2 fw-bold";
+                alertBox.innerText = res.message;
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            alertBox.className = "alert alert-danger mt-2 fw-bold";
+            alertBox.innerText = "Gagal mengirim data. Silakan periksa jaringan internet Anda.";
+        });
+    }
+
+    /* ENGINE TRANSMISI INSPEKSI TOILET (BARU - 9 POIN) */
+    function kirimLaporanToilet() {
+        const btn = document.getElementById("btnSubmitToilet");
+        const alertBox = document.getElementById("toiletSubmitAlert");
+
+        btn.disabled = true;
+        alertBox.className = "alert alert-info mt-2 fw-bold";
+        alertBox.innerText = "Sedang mentransmisikan checklist toilet ke server...";
+        alertBox.classList.remove("d-none");
+
+        // Mempersiapkan struktur paket data toilet
+        const payloadToilet = {
+            aksi: "kontrolToilet",
+            idToilet: scanResultToiletID,
+            namaPetugas: "Petugas Lapangan CPM",
+            statusLantai: document.getElementById("tLantai").value,
+            statusWastafel: document.getElementById("tWastafel").value,
+            statusSabun: document.getElementById("tSabun").value,
+            statusBau: document.getElementById("tBau").value,
+            closetUrinal: document.getElementById("tCloset").value,
+            tempatSampah: document.getElementById("tSampah").value,
+            plafon: document.getElementById("tPlafon").value,
+            penerangan: document.getElementById("tLampu").value,
+            catatan: document.getElementById("tCatatan").value.trim() || "-",
+            fotoToilet: ambilSnapshotBase64('toilet-webcam-preview'),
+            geoCode: userCoords || "GPS Terkunci/Mati"
+        };
+
+        fetch(WEB_APP_URL, {
+            method: "POST",
+            mode: "cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payloadToilet)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res.status === "success") {
+                alertBox.className = "alert alert-success mt-2 fw-bold text-center";
+                alertBox.innerText = res.message;
+                
+                setTimeout(() => {
+                    document.getElementById("cpmModalTitle").innerHTML = "🎉 LAPORAN TERKIRIM!";
+                    document.getElementById("modalHeaderBg").className = "modal-header bg-success text-white";
+                    document.getElementById("cpmModalBody").innerHTML = "Laporan Checklist Kebersihan Toilet berkala untuk lokasi <strong>" + scanResultToiletID + "</strong> sukses tersimpan di database.";
+                    document.getElementById("cpmModalFooter").innerHTML = `
+                        <button type="button" class="btn btn-success fw-bold px-5" onclick="tutupDanLogout()">Selesai</button>
+                    `;
+                    var modalSuksesToilet = new bootstrap.Modal(document.getElementById('cpmModal'));
+                    modalSuksesToilet.show();
+                }, 400);
+            } else {
+                btn.disabled = false;
+                alertBox.className = "alert alert-danger mt-2 fw-bold";
+                alertBox.innerText = res.message;
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            alertBox.className = "alert alert-danger mt-2 fw-bold";
+            alertBox.innerText = "Koneksi Bermasalah. Gagal memproses data toilet.";
+        });
+    }
+
+    /* SYSTEM RESET CLOSING WORKSPACE OUT GATE (ASLI & DIKEMBANGKAN) */
+    function tutupDanLogout() {
+        var modalElement = document.getElementById('cpmModal');
+        var modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+
+        // Reset Data Form Absen
+        document.getElementById("idKaryawan").value = "";
+        document.getElementById("keterangan").value = "";
+        document.getElementById("btnSubmit").disabled = false;
+        document.getElementById("submitAlert").classList.add("d-none");
+        
+        // Reset Data Form Toilet
+        document.getElementById("tCatatan").value = "";
+        document.getElementById("btnSubmitToilet").disabled = false;
+        document.getElementById("toiletSubmitAlert").classList.add("d-none");
+        scanResultToiletID = "";
+        
+        logout();
     }
 
     function logout() {
+        // Matikan total semua hardware kamera
         matikanSemuaAliranKamera();
-        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) html5QrcodeScanner.stop();
-        if (html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) html5QrcodeScannerToilet.stop();
-        document.getElementById("username").value = ""; document.getElementById("password").value = "";
+        
+        // Matikan scanner yang mungkin menggantung
+        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+            html5QrcodeScanner.stop();
+        }
+        if (html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) {
+            html5QrcodeScannerToilet.stop();
+        }
+
+        // Hapus field credential login
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+
+        // Kembalikan tampilan ke gerbang login semula
         document.getElementById("karyawanSection").classList.add("hidden-section");
         document.getElementById("toiletSection").classList.add("hidden-section");
         document.getElementById("absensiForm").classList.add("hidden-section");
         document.getElementById("dashboardMenuSection").classList.add("hidden-section");
-        document.getElementById("panelDashboardKepalaArea").classList.add("hidden-section");
         document.getElementById("loginSection").classList.remove("hidden-section");
     }
 </script>
