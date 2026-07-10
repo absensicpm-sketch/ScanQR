@@ -774,24 +774,33 @@ function prosesLogin() {
         document.getElementById("loginSection").classList.remove("hidden-section");
     }
 
-    function muatDataMonitor(area) {
-    fetch(URL_WEB_APP, { 
+   function muatDataMonitor(area) {
+    console.log("Mengambil data untuk area:", area); // Untuk debug
+    fetch(WEB_APP_URL, { 
         method: "POST", 
+        // Pastikan nama properti di sini sama dengan yang di doPost ScanQR.gs
         body: JSON.stringify({ aksi: "getMonitorHariIni", areaKacab: area }) 
     })
     .then(r => r.json())
     .then(res => {
+        console.log("Data diterima dari server:", res); // Cek di console browser
         let tbody = document.getElementById("tabelMonitorBody");
         tbody.innerHTML = "";
-        res.data.forEach(item => {
-            tbody.innerHTML += `<tr>
-                <td>${item.nama}</td>
-                <td>${item.waktu}</td>
-                <td>${item.tipe}</td>
-                <td><a href="${item.foto}" target="_blank">Lihat</a></td>
-            </tr>`;
-        });
-    });
+        
+        if (res.data && res.data.length > 0) {
+            res.data.forEach(item => {
+                tbody.innerHTML += `<tr>
+                    <td>${item.nama}</td>
+                    <td>${item.waktu}</td>
+                    <td>${item.tipe}</td>
+                    <td><a href="${item.foto}" target="_blank">Lihat</a></td>
+                </tr>`;
+            });
+        } else {
+            tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Tidak ada data hari ini</td></tr>";
+        }
+    })
+    .catch(err => console.error("Error:", err));
 }
 </script>
 </body>
