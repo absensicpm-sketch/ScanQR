@@ -279,72 +279,65 @@
     let scanResultToiletID = "";
 
 function prosesLogin() {
-        const user = document.getElementById("username").value.trim();
-        const pass = document.getElementById("password").value.trim();
-        const btn = document.getElementById("btnLogin");
-        const alertBox = document.getElementById("loginAlert");
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
+    const btn = document.getElementById("btnLogin");
+    const alertBox = document.getElementById("loginAlert");
 
-        if(!user || !pass) return;
-        
-        btn.disabled = true;
-        btn.innerText = "Memproses...";
-        alertBox.classList.add("d-none");
-
-        fetch(WEB_APP_URL, {
-            method: "POST",
-            mode: "cors",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ aksi: "login", username: user, password: pass })
-        })
-        .then(res => res.json())
-        .then(res => {
-            btn.disabled = false;
-            btn.innerText = "Masuk Aplikasi";
-            
-     if(res.status === "success") {
-    document.getElementById("loginSection").classList.add("hidden-section");
-    
-    // Debugging untuk memastikan apa yang diterima browser
-    console.log("Respon lengkap dari server:", res);
-    
-    // Tangkap data area dengan aman
-    const areaKacab = res.area || "Tidak Diketahui"; 
-    
-    // 1. Logika untuk Kacab
-    if (res.role === "kacab") {
-        document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
-        document.getElementById("displayAreaKacab").innerText = "Area: " + areaKacab;
-        
-        console.log("Memuat data untuk area:", areaKacab);
-        
-        if(typeof muatDataMonitor === 'function') {
-            muatDataMonitor(areaKacab);
-        } else {
-            console.error("Fungsi muatDataMonitor tidak ditemukan!");
-        }
-    } 
-    // 2. Logika untuk Karyawan
-    else {
-        daftarCabang = res.cabangList;
-        document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
-        if(typeof mulaiTrackingGPS === 'function') {
-            mulaiTrackingGPS();
-        }
+    if(!user || !pass) {
+        alert("Username dan Password wajib diisi!");
+        return;
     }
-}
+
+    btn.disabled = true;
+    btn.innerText = "Memproses...";
+    alertBox.classList.add("d-none");
+
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ aksi: "login", username: user, password: pass })
+    })
+    .then(res => res.json())
+    .then(res => {
+        btn.disabled = false;
+        btn.innerText = "Masuk Aplikasi";
+        
+        console.log("Respon Server:", res); // Membantu melacak di console
+
+        if(res.status === "success") {
+            document.getElementById("loginSection").classList.add("hidden-section");
+
+            if (res.role === "kacab") {
+                // Tampilkan Dashboard Kacab
+                document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
+                document.getElementById("displayAreaKacab").innerText = "Area: " + (res.area || "Tanpa Area");
+                
+                // Pastikan fungsi ini ada di bawah script
+                if(typeof muatDataMonitor === 'function') {
+                    muatDataMonitor(res.area);
+                }
             } else {
-                alertBox.innerText = res.message;
-                alertBox.classList.remove("d-none");
+                // Tampilkan Menu Karyawan
+                daftarCabang = res.cabangList;
+                document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
+                if(typeof mulaiTrackingGPS === 'function') {
+                    mulaiTrackingGPS();
+                }
             }
-        })
-        .catch(err => {
-            console.error("Error login:", err);
-            btn.disabled = false;
-            btn.innerText = "Masuk Aplikasi";
-            alertBox.innerText = "Koneksi server gagal.";
+        } else {
+            alertBox.innerText = res.message;
             alertBox.classList.remove("d-none");
-        });
-    }
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerText = "Masuk Aplikasi";
+        alertBox.innerText = "Error koneksi: " + err.message;
+        alertBox.classList.remove("d-none");
+    });
+}
 
     // CONTROLLER ROUTING NAVIGASI INTERN PORTAL
     function navigasiKeMenu(pilihan) {
