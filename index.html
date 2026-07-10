@@ -11,7 +11,7 @@
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #f4f6f9; }
         .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .hidden-section { display: none; }
+        .hidden-section { display: none !important; }
         .camera-container { position: relative; width: 100%; max-width: 340px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 4px solid #fff; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
         #webcam-preview { width: 100%; transform: scaleX(-1); background-color: #222; max-height: 260px; object-fit: cover; }
         .overlay-guideline { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 3px dashed rgba(255,255,255,0.6); pointer-events: none; border-radius: 12px; box-sizing: border-box; }
@@ -20,10 +20,9 @@
         .btn-menu i { font-size: 2rem; margin-bottom: 8px; }
         .header-banner { background: #E30613; color: white; padding: 20px; border-radius: 0 0 25px 25px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(227,6,19,0.3); }
         
-        /* Style Tambahan Khusus Dashboard Kepala Area */
-        .header-panel-area { background-color: #E30613; color: white; padding: 15px; border-bottom: 4px solid #FFC107; text-center: center; position: relative; }
+        /* Area Monitor Styling */
         .table-responsive-area { background: white; border-radius: 8px; padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .btn-detail-area { font-size: 0.75rem; padding: 0; text-decoration: none; color: #0d6efd; background: none; border: none; }
+        .btn-detail-area { font-size: 0.75rem; padding: 0; text-decoration: none; color: #0d6efd; background: none; border: none; font-weight: 600; }
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
     </style>
 </head>
@@ -31,12 +30,12 @@
 
     <div id="loadingScreen" class="loading-overlay">
         <div class="spinner-border text-danger" role="status"></div>
-        <span class="mt-2 fw-bold text-dark">Memproses Akses Database Area...</span>
+        <span class="mt-2 fw-bold text-dark">Menghubungkan ke Server Database...</span>
     </div>
 
     <div class="container py-4" style="max-width: 480px;">
         
-        <div id="loginSection" class="card card-custom p-4 mt-4">
+        <div id="loginSection" class="card card-custom p-4 mt-3 bg-white">
             <div class="text-center mb-4">
                 <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiwK9l69_uXW56XvE4M_EIn58gH_m7_WizRskVfW10H-N60pizYmREwK6pEis3rNqI-S6zR_V14I6fXvV2zM7p9w8zC5n_x7VvX4VzM/s1600/logo-cpm.png" alt="CPM Logo" style="max-height: 80px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/9166/9166942.png'">
                 <h4 class="fw-bold text-dark mt-3 mb-1">CPM CONTROL SYSTEM</h4>
@@ -59,7 +58,7 @@
                 </div>
             </div>
             
-            <button id="btnSubmit" class="btn btn-danger btn-custom w-100 mb-2" onclick="login()">
+            <button id="btnSubmit" class="btn btn-danger btn-custom w-100" onclick="login()">
                 <i class="fa-solid fa-right-to-bracket me-2"></i>MASUK KE SISTEM
             </button>
         </div>
@@ -86,7 +85,7 @@
             </div>
             
             <div class="text-center mt-5">
-                <button class="btn btn-sm btn-secondary px-4 style-radius" onclick="logout()">
+                <button class="btn btn-sm btn-secondary px-4" style="border-radius:10px;" onclick="logout()">
                     <i class="fa-solid fa-power-off me-2"></i>Keluar Akun
                 </button>
             </div>
@@ -141,9 +140,10 @@
             
             <div id="submitAlert" class="alert d-none text-center fw-bold small"></div>
             
-            <button id="btnSubmitAbsenReal" class="btn btn-success btn-custom w-100" onclick="prosesKirimDataAbsenKeDatabaseScript()">
+            <button id="btnSubmitAbsenReal" class="btn btn-success btn-custom w-100 mb-2" onclick="prosesKirimDataAbsenKeDatabaseScript()">
                 <i class="fa-solid fa-cloud-arrow-up me-2"></i>KIRIM DATA ABSENSI
             </button>
+            <button class="btn btn-sm btn-secondary w-100" style="border-radius:10px;" onclick="kembaliKeMenuDashboardUtama()">Batal</button>
         </div>
 
         <div id="toiletSection" class="hidden-section">
@@ -204,7 +204,7 @@
                 
                 <div id="toiletSubmitAlert" class="alert d-none text-center fw-bold small"></div>
                 
-                <button id="btnSubmitToilet" class="btn btn-warning btn-custom w-100 text-dark fw-bold" onclick="prosesKirimDataToiletKeDatabaseScript()">
+                <button id="btnSubmitToilet" class="btn btn-warning btn-custom w-100 text-dark fw-bold mb-2" onclick="prosesKirimDataToiletKeDatabaseScript()">
                     <i class="fa-solid fa-paper-plane me-2"></i>KIRIM LAPORAN TOILET
                 </button>
             </div>
@@ -296,7 +296,7 @@
     // =========================================================================
     // INTEGRASI URL SCRIPT UTAMA PERUSAHAAN ANDA
     // =========================================================================
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbwPOnr6AAn7S6A89N0_T_3b9GpxwG21Mh2Y_V_P3Hl0HqC4B8_HhO6zXwLw377MHA/exec"; // Ganti URL deployment real Anda jika perlu
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbwPOnr6AAn7S6A89N0_T_3b9GpxwG21Mh2Y_V_P3Hl0HqC4B8_HhO6zXwLw377MHA/exec";
 
     let html5QrcodeScanner = null;
     let html5QrcodeScannerToilet = null;
@@ -305,13 +305,13 @@
     let scanResultToiletID = "";
     let cabangList = [];
     
-    // Variabel state baru untuk Kepala Area
     let sessionUserArea = "";
     let namaKaryawanTerpilih = "";
     let modalBulanObj = null;
     let modalDetailObj = null;
 
-    window.onload = function() {
+    // Inisialisasi awal penanggalan
+    window.addEventListener('DOMContentLoaded', (event) => {
         modalBulanObj = new bootstrap.Modal(document.getElementById('modalPilihBulan'));
         modalDetailObj = new bootstrap.Modal(document.getElementById('modalDetailLog'));
         
@@ -320,18 +320,18 @@
             document.getElementById('displayTanggalKepalaArea').innerHTML = `<i class="fa-regular fa-calendar-days me-1"></i> Hari Ini: ${new Date().toLocaleDateString('id-ID', opsi)}`;
         }
         mulaiAmbilKoordinatGpsLatarBelakang();
-    }
+    });
 
     function showLoadingGlobal(status) {
         document.getElementById('loadingScreen').style.display = status ? 'flex' : 'none';
     }
 
     // =========================================================================
-    // GERBANG DETEKSI LOGIN BERGANDA (ROLE KARYAWAN VS ROLE KEPALA AREA)
+    // GERBANG DETEKSI LOGIN BERGANDA GLOBAL (FUNGSI UTAMA SEKRUP LOGIN)
     // =========================================================================
     function login() {
-        var user = document.getElementById("username").value;
-        var pass = document.getElementById("password").value;
+        var user = document.getElementById("username").value.trim();
+        var pass = document.getElementById("password").value.trim();
         
         if (!user || !pass) {
             alert("Username dan Password harus diisi!");
@@ -418,7 +418,6 @@
 
         data.forEach(item => {
             countHadir++;
-            // Asumsi penanda status jam keterlambatan masuk di atas jam 08:00 pagi
             let isLate = item.masuk !== "--:--" && item.masuk > "08:00";
             if(isLate) countTerlambat++;
 
@@ -524,7 +523,7 @@
     }
 
     // =========================================================================
-    // FUNGSI NAVIGASI ASLI BAWAAN SISTEM OPERASIONAL LAPANGAN
+    // FUNGSI NAVIGASI OPERASIONAL TIM LAPANGAN
     // =========================================================================
     function pindahKeSectionAbsen() {
         document.getElementById("dashboardMenuSection").classList.add("hidden-section");
@@ -552,7 +551,7 @@
     }
 
     // =========================================================================
-    // ALIRAN WEBCAM LIVE HARDWARE (FOTO SELFIE)
+    // WEBCAM HARDWARE HUB
     // =========================================================================
     function startWebcam() {
         var video = document.getElementById('webcam-preview');
@@ -563,7 +562,7 @@
                 video.srcObject = stream;
             })
             .catch(function(err) {
-                console.log("Kamera depan diblokir atau tidak tersedia: " + err);
+                console.log("Kamera tidak tersedia: " + err);
             });
         }
     }
@@ -577,7 +576,7 @@
     }
 
     // =========================================================================
-    // IMPLEMENTASI ENGINE CORE SCANNER KARYAWAN BERSAMA GPS
+    // SCANNER QR ABSENSI & GPS LOCK SYSTEMS
     // =========================================================================
     function initQrCodeScannerKaryawan() {
         if(!html5QrcodeScanner) {
@@ -597,14 +596,10 @@
                 displayBox.classList.remove("d-none");
                 displayBox.innerHTML = "<i class='fa-solid fa-user-check me-2'></i>ID Terbaca: " + decodedText;
                 
-                // Nyalakan form pengiriman absensi
                 document.getElementById("absensiForm").classList.remove("hidden-section");
-                
-                // Otomatis tarik koordinat GPS terbaru
                 mulaiAmbilKoordinatGpsLatarBelakang();
             }
         }
-        
         html5QrcodeScanner.render(onScanSuccess);
     }
 
@@ -629,11 +624,11 @@
                 function(error) {
                     if(statusBox) {
                         statusBox.className = "alert alert-warning p-2 small mb-3 text-center";
-                        statusBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation text-warning me-2'></i>GPS Lemah. Nyalakan Akurasi Tinggi HP!";
+                        statusBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation text-warning me-2'></i>GPS Lemah. Sinyal Diisolasi!";
                     }
                     document.getElementById("geoStamp").value = new Date().toLocaleString('id-ID');
-                    document.getElementById("geoCode").value = "-6.1753, 106.8271"; // Default Monas fallback
-                    document.getElementById("geoAddress").value = "Lokasi Default Statis (Isolasi Sinyal)";
+                    document.getElementById("geoCode").value = "-6.1753, 106.8271";
+                    document.getElementById("geoAddress").value = "Lokasi Default Statis";
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
@@ -659,7 +654,7 @@
             canvas.width = video.videoWidth || 320;
             canvas.height = video.videoHeight || 240;
             ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1); // Mirroring back
+            ctx.scale(-1, 1);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             stringFotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
         } catch(e) {
@@ -676,7 +671,7 @@
             aksi: "absen",
             idKaryawan: idKar,
             namaKaryawan: idKar.includes(" - ") ? idKar.split(" - ")[1].trim() : idKar,
-            cabang: "PT IMORA MOTOR", // Default fallback string data area bawaan
+            cabang: "PT IMORA MOTOR",
             tipeAbsen: tipe,
             keterangan: ket,
             foto: stringFotoBase64,
@@ -694,7 +689,7 @@
             if(res.status === "success") {
                 alertBox.className = "alert alert-success text-center fw-bold small";
                 alertBox.innerHTML = "<i class='fa-solid fa-circle-check me-2'></i>" + res.message;
-                setTimeout(resetFormAbsensiSetelahSukses, 3000);
+                setTimeout(resetFormAbsensiSetelahSukses, 2500);
             } else {
                 alertBox.className = "alert alert-danger text-center fw-bold small";
                 alertBox.innerHTML = "<i class='fa-solid fa-circle-xmark me-2'></i>" + res.message;
@@ -703,7 +698,7 @@
         })
         .catch(err => {
             alertBox.className = "alert alert-danger text-center fw-bold small";
-            alertBox.innerHTML = "Error Komunikasi Webapp: " + err;
+            alertBox.innerHTML = "Error: " + err;
             document.getElementById("btnSubmitAbsenReal").disabled = false;
         });
     }
@@ -712,15 +707,14 @@
         document.getElementById("idKaryawan").value = "";
         document.getElementById("keterangan").value = "";
         document.getElementById("btnSubmitAbsenReal").disabled = false;
-        document.getElementById("submitAlert").classList.add("d-none");
+        document.getElementById("submitAlert").className = "alert d-none text-center fw-bold small";
         document.getElementById("manual-name-display").classList.add("d-none");
         scanResultKaryawanID = "";
-        
         logout();
     }
 
     // =========================================================================
-    // IMPLEMENTASI ENGINE CORE SCANNER KONTROL TOILET BERKALA
+    // SCANNER QR KONTROL TOILET BERKALA SYSTEMS
     // =========================================================================
     function initQrCodeScannerToilet() {
         if(!html5QrcodeScannerToilet) {
@@ -770,7 +764,7 @@
             penerangan: document.getElementById("tPenerangan").value,
             catatan: document.getElementById("tCatatan").value,
             geoCode: document.getElementById("geoCode").value,
-            fotoToilet: "" // Bawaan default string kosong penampung aset visual
+            fotoToilet: ""
         };
 
         fetch(URL_WEB_APP, {
@@ -782,7 +776,7 @@
             if(res.status === "success") {
                 tAlert.className = "alert alert-success text-center fw-bold small";
                 tAlert.innerHTML = "<i class='fa-solid fa-circle-check me-2'></i>" + res.message;
-                setTimeout(resetFormToiletSetelahSukses, 3000);
+                setTimeout(resetFormToiletSetelahSukses, 2500);
             } else {
                 tAlert.className = "alert alert-danger text-center fw-bold small";
                 tAlert.innerHTML = "<i class='fa-solid fa-circle-xmark me-2'></i>" + res.message;
@@ -800,26 +794,23 @@
         document.getElementById("tCatatan").value = "";
         document.getElementById("tNamaPetugas").value = "";
         document.getElementById("btnSubmitToilet").disabled = false;
-        document.getElementById("toiletSubmitAlert").classList.add("d-none");
+        document.getElementById("toiletSubmitAlert").className = "alert d-none text-center fw-bold small";
         scanResultToiletID = "";
-        
         logout();
     }
 
     // =========================================================================
-    // PEMUTUS ALIRAN HARDWARE HARDLOCK & RE-INITIALIZE GERBANG UTAMA
+    // SYSTEM LOGOUT & RESET FLUSH TERMINAL
     // =========================================================================
     function logout() {
         matikanSemuaAliranKamera();
         
-        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) html5QrcodeScanner.stop();
-        if (html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) html5QrcodeScannerToilet.stop();
+        try { if (html5QrcodeScanner && html5QrcodeScanner.isScanning) html5QrcodeScanner.stop(); } catch(e){}
+        try { if (html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) html5QrcodeScannerToilet.stop(); } catch(e){}
 
-        // Hapus field credential login sebelumnya
         document.getElementById("username").value = "";
         document.getElementById("password").value = "";
 
-        // Sembunyikan semua wadah kontainer halaman
         document.getElementById("karyawanSection").classList.add("hidden-section");
         document.getElementById("toiletSection").classList.add("hidden-section");
         document.getElementById("absensiForm").classList.add("hidden-section");
@@ -827,11 +818,9 @@
         document.getElementById("dashboardMenuSection").classList.add("hidden-section");
         document.getElementById("panelDashboardKepalaArea").classList.add("hidden-section");
         
-        // Bersihkan data session area
         sessionUserArea = "";
         namaKaryawanTerpilih = "";
 
-        // Tampilkan panel login utama
         document.getElementById("loginSection").classList.remove("hidden-section");
     }
 </script>
