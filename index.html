@@ -278,13 +278,14 @@
     let html5QrcodeScannerToilet = null;
     let scanResultToiletID = "";
 
-    function prosesLogin() {
+function prosesLogin() {
         const user = document.getElementById("username").value.trim();
-        const pass = document.getElementById("password").value;
+        const pass = document.getElementById("password").value.trim();
         const btn = document.getElementById("btnLogin");
         const alertBox = document.getElementById("loginAlert");
 
         if(!user || !pass) return;
+        
         btn.disabled = true;
         btn.innerText = "Memproses...";
         alertBox.classList.add("d-none");
@@ -299,28 +300,37 @@
         .then(res => {
             btn.disabled = false;
             btn.innerText = "Masuk Aplikasi";
+            
             if(res.status === "success") {
                 document.getElementById("loginSection").classList.add("hidden-section");
-                daftarCabang = res.cabangList;
-
-                // --- LOGIKA BARU PEMISAHAN ROLE ---
+                
+                // 1. Logika untuk Kacab
                 if (res.role === "kacab") {
-                    // Jika Kacab, tampilkan Dashboard Khusus Kacab
                     document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
                     document.getElementById("displayAreaKacab").innerText = "Area: " + res.area;
-                    
-                    // Panggil fungsi untuk mengambil data monitor (fungsi yang kita bahas sebelumnya)
-                    muatDataMonitor(res.area);
-                } else {
-                    // Jika Karyawan, tampilkan menu utama seperti biasa
+                    if(typeof muatDataMonitor === 'function') {
+                        muatDataMonitor(res.area);
+                    }
+                } 
+                // 2. Logika untuk Karyawan
+                else {
+                    daftarCabang = res.cabangList;
                     document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
-                    mulaiTrackingGPS(); 
+                    // Pengecekan aman untuk fungsi GPS
+                    if(typeof mulaiTrackingGPS === 'function') {
+                        mulaiTrackingGPS();
+                    }
                 }
+            } else {
+                alertBox.innerText = res.message;
+                alertBox.classList.remove("d-none");
             }
+        })
         .catch(err => {
+            console.error("Error login:", err);
             btn.disabled = false;
             btn.innerText = "Masuk Aplikasi";
-            alertBox.innerText = "Koneksi server terputus/ditolak.";
+            alertBox.innerText = "Koneksi server gagal.";
             alertBox.classList.remove("d-none");
         });
     }
