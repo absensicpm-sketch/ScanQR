@@ -273,6 +273,7 @@
     let cabangTerpilih = "";
     let localStream = null;
     let html5QrcodeScanner = null;
+    let globalSheetId = "";
     
     // Variabel Tambahan Toilet
     let html5QrcodeScannerToilet = null;
@@ -313,10 +314,11 @@ function prosesLogin() {
                 // Tampilkan Dashboard Kacab
                 document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
                 document.getElementById("displayAreaKacab").innerText = "Area: " + (res.area || "Tanpa Area");
-                
+                // SIMPAN sheetId ke variabel global
+                globalSheetId = res.sheetId;
                 // Pastikan fungsi ini ada di bawah script
                 if(typeof muatDataMonitor === 'function') {
-                    muatDataMonitor(res.area);
+                    muatDataMonitor(res.area, globalSheetId);
                 }
             } else {
                 // Tampilkan Menu Karyawan
@@ -778,15 +780,16 @@ function prosesLogin() {
         document.getElementById("loginSection").classList.remove("hidden-section");
     }
 
-  function muatDataMonitor(area, sheetId) { // Tambahkan parameter sheetId di sini
+function muatDataMonitor(area, sheetId) { 
     console.log("Mengambil data untuk area:", area, "dengan ID:", sheetId); 
     fetch(WEB_APP_URL, { 
         method: "POST", 
-        // Tambahkan sheetId ke dalam JSON yang dikirim ke server
+        mode: "cors", // Tambahkan mode cors jika terjadi error blocked by CORS
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ 
             aksi: "getMonitorHariIni", 
             areaKacab: area,
-            sheetId: sheetId // <--- INI TAMBAHANNYA
+            sheetId: sheetId 
         }) 
     })
     .then(r => r.json())
