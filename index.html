@@ -778,12 +778,16 @@ function prosesLogin() {
         document.getElementById("loginSection").classList.remove("hidden-section");
     }
 
-   function muatDataMonitor(area) {
-    console.log("Mengambil data untuk area:", area); // Untuk debug
+  function muatDataMonitor(area, sheetId) { // Tambahkan parameter sheetId di sini
+    console.log("Mengambil data untuk area:", area, "dengan ID:", sheetId); 
     fetch(WEB_APP_URL, { 
         method: "POST", 
-        // Pastikan nama properti di sini sama dengan yang di doPost ScanQR.gs
-        body: JSON.stringify({ aksi: "getMonitorHariIni", areaKacab: area }) 
+        // Tambahkan sheetId ke dalam JSON yang dikirim ke server
+        body: JSON.stringify({ 
+            aksi: "getMonitorHariIni", 
+            areaKacab: area,
+            sheetId: sheetId // <--- INI TAMBAHANNYA
+        }) 
     })
     .then(r => r.json())
     .then(res => {
