@@ -780,38 +780,46 @@ function prosesLogin() {
         document.getElementById("loginSection").classList.remove("hidden-section");
     }
 
-function muatDataMonitor(area, sheetId) { 
-    console.log("Mengambil data untuk area:", area, "dengan ID:", sheetId); 
-    fetch(WEB_APP_URL, { 
-        method: "POST", 
-        mode: "cors", // Tambahkan mode cors jika terjadi error blocked by CORS
+function muatDataMonitor(area, sheetId) {
+    console.log("Mengambil data untuk area:", area, "dengan ID:", sheetId);
+    
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ 
-            aksi: "getMonitorHariIni", 
+        body: JSON.stringify({
+            aksi: "getMonitorHariIni",
             areaKacab: area,
-            sheetId: sheetId 
-        }) 
+            sheetId: sheetId
+        })
     })
     .then(r => r.json())
     .then(res => {
-        console.log("Data diterima dari server:", res); // Cek di console browser
+        console.log("Data diterima dari server:", res);
         let tbody = document.getElementById("tabelMonitorBody");
         tbody.innerHTML = "";
-        
-        if (res.data && res.data.length > 0) {
+
+        if (res.status === "success" && res.data && res.data.length > 0) {
             res.data.forEach(item => {
                 tbody.innerHTML += `<tr>
-                    <td>${item.nama}</td>
-                    <td>${item.waktu}</td>
-                    <td>${item.tipe}</td>
-                    <td><a href="${item.foto}" target="_blank">Lihat</a></td>
+                    <td>
+                        <strong>${item.nama}</strong><br>
+                        <button class="btn btn-sm btn-outline-primary py-0 px-2 mt-1" 
+                                onclick="bukaDetailRekap('${item.nama}', '${sheetId}')">Detail</button>
+                    </td>
+                    <td>${item.masuk}</td>
+                    <td>${item.pulang}</td>
+                    <td><a href="${item.foto}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a></td>
                 </tr>`;
             });
         } else {
             tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Tidak ada data hari ini</td></tr>";
         }
     })
-    .catch(err => console.error("Error:", err));
+    .catch(err => {
+        console.error("Error:", err);
+        alert("Gagal memuat data monitor.");
+    });
 }
 </script>
 </body>
