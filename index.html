@@ -78,7 +78,7 @@
     </div>
  <!-- Tombol Aksi Baru -->
 <div class="d-flex gap-2 mt-3 mb-4">
-    <button class="btn btn-outline-secondary w-50" onclick="window.location.reload()">Refresh</button>
+    <button type="button" class="btn btn-outline-secondary w-50" onclick="muatDataMonitorSaatRefresh()">Refresh</button>
     <button class="btn btn-danger w-50" onclick="logout()">Keluar</button>
 </div>
             <div id="dashboardMenuSection" class="card card-custom p-4 text-start bg-white hidden-section">
@@ -315,44 +315,47 @@ function prosesLogin() {
         if(res.status === "success") {
             document.getElementById("loginSection").classList.add("hidden-section");
 
+   // ... di dalam bagian .then(res => {
+    if (res.status === "success") {
+        // 1. Sembunyikan form login terlebih dahulu
+        document.getElementById("loginSection").classList.add("hidden-section");
+
         if (res.role === "kacab") {
-    // Tampilkan Dashboard Kacab
-    document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
-    document.getElementById("displayAreaKacab").innerText = "Area: " + (res.area || "Tanpa Area");
-    
-    // TAMBAHKAN KODE INI UNTUK TANGGAL:
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const tanggalIndonesia = new Date().toLocaleDateString('id-ID', options);
-    document.getElementById("tanggalHariIni").innerText = tanggalIndonesia;
-    
-    // Simpan sheetId ke variabel global
-    globalSheetId = res.sheetId; 
-    
-    // Panggil fungsi muatDataMonitor
-    if(typeof muatDataMonitor === 'function') {
-        muatDataMonitor(res.area, globalSheetId);
-    }
-            } else {
-                // Tampilkan Menu Karyawan
-                daftarCabang = res.cabangList;
-                document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
-                if(typeof mulaiTrackingGPS === 'function') {
-                    mulaiTrackingGPS();
-                }
+            // Tampilkan Dashboard Kacab
+            document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
+            document.getElementById("displayAreaKacab").innerText = "Area: " + (res.area || "Tanpa Area");
+            
+            // Pengaturan Tanggal
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const tanggalIndonesia = new Date().toLocaleDateString('id-ID', options);
+            document.getElementById("tanggalHariIni").innerText = tanggalIndonesia;
+            
+            globalSheetId = res.sheetId; 
+            if(typeof muatDataMonitor === 'function') {
+                muatDataMonitor(res.area, globalSheetId);
+            }
+        } else if (res.role === "karyawan") {
+            // Tampilkan Menu Karyawan (Pastikan id dashboardMenuSection sudah benar)
+            daftarCabang = res.cabangList;
+            document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
+            
+            if(typeof mulaiTrackingGPS === 'function') {
+                mulaiTrackingGPS();
             }
         } else {
-            alertBox.innerText = res.message;
-            alertBox.classList.remove("d-none");
+            // Role tidak dikenal
+            alert("Role tidak dikenali: " + res.role);
+            // Kembali ke login jika role bermasalah
+            document.getElementById("loginSection").classList.remove("hidden-section");
         }
-    })
-    .catch(err => {
+    } else {
+        // Handle error login dari server
         btn.disabled = false;
         btn.innerText = "Masuk Aplikasi";
-        alertBox.innerText = "Error koneksi: " + err.message;
+        alertBox.innerText = res.message;
         alertBox.classList.remove("d-none");
-    });
-}
-
+    }
+// ...
     // CONTROLLER ROUTING NAVIGASI INTERN PORTAL
     function navigasiKeMenu(pilihan) {
         document.getElementById("dashboardMenuSection").classList.add("hidden-section");
@@ -797,6 +800,19 @@ function prosesLogin() {
     // Tampilkan kembali layar login
     document.getElementById("loginSection").classList.remove("hidden-section");
 }
+function muatDataMonitorSaatRefresh() {
+        console.log("Memulai proses refresh data...");
+        // Mengambil area dari teks di header
+        let areaText = document.getElementById("displayAreaKacab").innerText.replace("Area: ", "");
+        
+        // Memanggil fungsi utama untuk muat data dengan variabel globalSheetId yang sudah ada
+        if(typeof globalSheetId !== 'undefined' && globalSheetId) {
+            muatDataMonitor(areaText, globalSheetId);
+        } else {
+            // Jika variabel globalSheetId hilang karena refresh browser, reload halaman
+            window.location.reload(); 
+        }
+    }
 function muatDataMonitor(area, sheetId) {
     console.log("Mengambil data untuk area:", area, "dengan ID:", sheetId);
     
