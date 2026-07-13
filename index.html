@@ -778,6 +778,12 @@ function prosesLogin() {
     // 3. Hapus input credential
     document.getElementById("username").value = "";
     document.getElementById("password").value = "";
+      
+    // TAMBAHKAN INI:
+    globalSheetId = "";
+    cabangTerpilih = "";
+    daftarCabang = [];
+    userCoords = "";
 
     // 4. Reset tampilan semua section
     document.getElementById("karyawanSection").classList.add("hidden-section");
