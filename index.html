@@ -309,13 +309,10 @@ function prosesLogin() {
     .then(res => {
         btn.disabled = false;
         btn.innerText = "Masuk Aplikasi";
-        console.log("Respon Server:", res);
-
+        
         if (res.status === "success") {
-            // 1. Sembunyikan form login
             document.getElementById("loginSection").classList.add("hidden-section");
 
-            // 2. Arahkan berdasarkan role
             if (res.role === "kacab") {
                 document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
                 document.getElementById("displayAreaKacab").innerText = "Area: " + (res.area || "Tanpa Area");
@@ -338,13 +335,11 @@ function prosesLogin() {
                 document.getElementById("loginSection").classList.remove("hidden-section");
             }
         } else {
-            // Handle error login
             alertBox.innerText = res.message;
             alertBox.classList.remove("d-none");
         }
     })
     .catch(err => {
-        console.error(err);
         btn.disabled = false;
         btn.innerText = "Masuk Aplikasi";
         alertBox.innerText = "Error koneksi: " + err.message;
