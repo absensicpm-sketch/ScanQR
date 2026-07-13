@@ -59,7 +59,9 @@
     <div class="card p-3 mb-3" style="background: #E30613; color: white; border-radius: 15px;">
         <h5 class="fw-bold" id="displayAreaKacab">Area: -</h5>
         <p class="small mb-0">Monitor Absensi Hari Ini</p>
+        <p id="tanggalHariIni" class="small fw-bold mb-0"></p> <!-- Elemen baru untuk tanggal -->
     </div>
+    
     <div class="table-responsive">
         <table class="table table-bordered table-striped">
             <thead class="table-light">
@@ -74,7 +76,10 @@
                 </tbody>
         </table>
     </div>
-    <button class="btn btn-secondary w-100" onclick="location.reload()">Keluar/Refresh</button>
+ <!-- Tombol Aksi Baru -->
+<div class="d-flex gap-2 mt-3 mb-4">
+    <button class="btn btn-outline-secondary w-50" onclick="window.location.reload()">Refresh</button>
+    <button class="btn btn-danger w-50" onclick="logout()">Keluar</button>
 </div>
             <div id="dashboardMenuSection" class="card card-custom p-4 text-start bg-white hidden-section">
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -310,16 +315,23 @@ function prosesLogin() {
         if(res.status === "success") {
             document.getElementById("loginSection").classList.add("hidden-section");
 
-            if (res.role === "kacab") {
-                // Tampilkan Dashboard Kacab
-                document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
-                document.getElementById("displayAreaKacab").innerText = "Area: " + (res.area || "Tanpa Area");
-                // SIMPAN sheetId ke variabel global
-                globalSheetId = res.sheetId;
-                // Pastikan fungsi ini ada di bawah script
-                if(typeof muatDataMonitor === 'function') {
-                    muatDataMonitor(res.area, globalSheetId);
-                }
+        if (res.role === "kacab") {
+    // Tampilkan Dashboard Kacab
+    document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
+    document.getElementById("displayAreaKacab").innerText = "Area: " + (res.area || "Tanpa Area");
+    
+    // TAMBAHKAN KODE INI UNTUK TANGGAL:
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const tanggalIndonesia = new Date().toLocaleDateString('id-ID', options);
+    document.getElementById("tanggalHariIni").innerText = tanggalIndonesia;
+    
+    // Simpan sheetId ke variabel global
+    globalSheetId = res.sheetId; 
+    
+    // Panggil fungsi muatDataMonitor
+    if(typeof muatDataMonitor === 'function') {
+        muatDataMonitor(res.area, globalSheetId);
+    }
             } else {
                 // Tampilkan Menu Karyawan
                 daftarCabang = res.cabangList;
@@ -756,30 +768,35 @@ function prosesLogin() {
         logout();
     }
 
-    function logout() {
-        // Matikan total semua hardware kamera
-        matikanSemuaAliranKamera();
-        
-        // Matikan scanner yang mungkin menggantung
-        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-            html5QrcodeScanner.stop();
-        }
-        if (html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) {
-            html5QrcodeScannerToilet.stop();
-        }
-
-        // Hapus field credential login
-        document.getElementById("username").value = "";
-        document.getElementById("password").value = "";
-
-        // Kembalikan tampilan ke gerbang login semula
-        document.getElementById("karyawanSection").classList.add("hidden-section");
-        document.getElementById("toiletSection").classList.add("hidden-section");
-        document.getElementById("absensiForm").classList.add("hidden-section");
-        document.getElementById("dashboardMenuSection").classList.add("hidden-section");
-        document.getElementById("loginSection").classList.remove("hidden-section");
+  function logout() {
+    // 1. Matikan hardware & scanner (Kode Anda sudah benar)
+    matikanSemuaAliranKamera();
+    if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+        html5QrcodeScanner.stop();
+    }
+    if (html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) {
+        html5QrcodeScannerToilet.stop();
     }
 
+    // 2. Tambahkan pembersihan Session
+    sessionStorage.clear(); // Sangat penting untuk memastikan status login hilang
+
+    // 3. Hapus input credential
+    document.getElementById("username").value = "";
+    document.getElementById("password").value = "";
+
+    // 4. Reset tampilan semua section
+    document.getElementById("karyawanSection").classList.add("hidden-section");
+    document.getElementById("toiletSection").classList.add("hidden-section");
+    document.getElementById("absensiForm").classList.add("hidden-section");
+    document.getElementById("dashboardMenuSection").classList.add("hidden-section");
+    
+    // TAMBAHAN: Sembunyikan juga dashboard Kacab
+    document.getElementById("dashboardKacabSection").classList.add("hidden-section");
+    
+    // Tampilkan kembali layar login
+    document.getElementById("loginSection").classList.remove("hidden-section");
+}
 function muatDataMonitor(area, sheetId) {
     console.log("Mengambil data untuk area:", area, "dengan ID:", sheetId);
     
