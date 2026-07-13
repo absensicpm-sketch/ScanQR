@@ -338,6 +338,24 @@ function prosesLogin() {
             alertBox.innerText = res.message;
             alertBox.classList.remove("d-none");
         }
+        } else if (res.role === "karyawan") {
+    console.log("Mencoba login sebagai karyawan...");
+    daftarCabang = res.cabangList;
+    
+    let menu = document.getElementById("dashboardMenuSection");
+    if (menu) {
+        menu.classList.remove("hidden-section");
+        console.log("Dashboard Karyawan ditampilkan.");
+    } else {
+        alert("Error: ID 'dashboardMenuSection' tidak ditemukan di HTML!");
+    }
+    
+    if (typeof mulaiTrackingGPS === 'function') {
+        mulaiTrackingGPS();
+    } else {
+        alert("Error: Fungsi mulaiTrackingGPS tidak ditemukan!");
+    }
+}
     })
     .catch(err => {
         btn.disabled = false;
