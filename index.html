@@ -853,26 +853,22 @@ function muatDataMonitor(area, sheetId) {
         if (res && res.status === "success" && res.data) {
             let dataGabung = {};
             
-    res.data.forEach(item => {
-    // Cari key yang mengandung kata 'NAMA' (case-insensitive)
-    let keys = Object.keys(item);
-    let namaKey = keys.find(k => k.toUpperCase().includes('NAMA'));
-    let tsKey = keys.find(k => k.toUpperCase().includes('TIMESTAMP'));
-    let tipeKey = keys.find(k => k.toUpperCase().includes('TIPE'));
-    let fotoKey = keys.find(k => k.toUpperCase().includes('FOTO'));
-
-    let nama = item[namaKey];
+   res.data.forEach(item => {
+    // Normalisasi key agar tahan terhadap spasi/perbedaan huruf besar-kecil
+    let nama = item['NAMA KARYAWAN'];
     if (!nama) return;
 
     if (!dataGabung[nama]) {
         dataGabung[nama] = { nama: nama, masuk: "-", pulang: "-", fotoMasuk: null, fotoPulang: null };
     }
-
-    let ts = item[tsKey] || "";
+    
+    // Ambil data dengan ejaan yang persis dari gambar Anda
+    let ts = item['Timestamp'] || "";
     let jam = ts.toString().includes(" ") ? ts.toString().split(' ')[1] : ts.toString();
-    let foto = item[fotoKey] || "";
-    let tipe = (item[tipeKey] || "").toString().toUpperCase();
-
+    let foto = item['FOTO SELFY'] || "";
+    let tipe = (item['TIPE ABSEN'] || "").toString().trim().toUpperCase();
+    
+    // Cek apakah tipe masuk atau pulang
     if (tipe === 'MASUK') {
         dataGabung[nama].masuk = jam;
         dataGabung[nama].fotoMasuk = foto;
