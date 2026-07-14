@@ -849,24 +849,28 @@ function muatDataMonitor(area, sheetId) {
     if (res.status === "success" && res.data && res.data.length > 0) {
         let dataGabung = {};
         
-        res.data.forEach(item => {
-            // Kita gunakan item['NAMA KARYAWAN'] sesuai gambar tabel Anda
-            let nama = item['NAMA KARYAWAN'];
-            if (!dataGabung[nama]) {
-                dataGabung[nama] = { nama: nama, masuk: "-", pulang: "-", fotoMasuk: null, fotoPulang: null };
-            }
-            
-            // Mengambil jam dari Timestamp (asumsi format "dd/mm/yyyy hh:mm:ss")
-            let jam = item['Timestamp'] ? item['Timestamp'].split(' ')[1] : "-";
-            
-            if (item['TIPE ABSEN'] === 'MASUK') {
-                dataGabung[nama].masuk = jam;
-                dataGabung[nama].fotoMasuk = item['FOTO SELFY'];
-            } else if (item['TIPE ABSEN'] === 'PULANG') {
-                dataGabung[nama].pulang = jam;
-                dataGabung[nama].fotoPulang = item['FOTO SELFY'];
-            }
-        });
+        // Ganti bagian res.data.forEach yang lama dengan ini:
+res.data.forEach(item => {
+    // Sesuaikan key dengan persis nama kolom di Sheet Anda
+    let nama = item['NAMA KARYAWAN']; 
+    if (!nama) return; // Jika nama kosong, lewati
+
+    if (!dataGabung[nama]) {
+        dataGabung[nama] = { nama: nama, masuk: "-", pulang: "-", fotoMasuk: null, fotoPulang: null };
+    }
+    
+    // Ambil jam (asumsi format "dd/mm/yyyy hh:mm:ss")
+    let timestamp = item['Timestamp'] || "";
+    let jam = timestamp.includes(" ") ? timestamp.split(' ')[1] : timestamp;
+    
+    if (item['TIPE ABSEN'] === 'MASUK') {
+        dataGabung[nama].masuk = jam;
+        dataGabung[nama].fotoMasuk = item['FOTO SELFY'];
+    } else if (item['TIPE ABSEN'] === 'PULANG') {
+        dataGabung[nama].pulang = jam;
+        dataGabung[nama].fotoPulang = item['FOTO SELFY'];
+    }
+});
 
         Object.values(dataGabung).forEach(item => {
             // Tombol Lihat: Jika ada link, tombol warna Biru (info), jika tidak ada, tombol warna Abu (secondary/disabled)
