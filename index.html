@@ -891,74 +891,46 @@ function muatDataMonitor(area, sheetId) {
             sheetId: sheetId
         })
     })
-    .then(r => {
-        console.log("Response status:", r.status);
-        return r.json();
-    })
+    .then(r => r.json())
     .then(res => {
-        console.log("Data diterima:", res);
         let tbody = document.getElementById("tabelMonitorBody");
         tbody.innerHTML = "";
 
         if (res && res.status === "success" && res.data) {
-        // 1. Proses pengelompokan data
-        let dataGabung = {};
-        res.data.forEach(item => {
-            let nama = item.nama;
-            if (!nama) return;
+            // Karena data dari server sudah dalam format per orang (sudah ada masuk & pulang), 
+            // kita tinggal menampilkannya langsung tanpa perlu pengelompokan rumit.
+            res.data.forEach(item => {
+                let nama = item.nama || "-";
+                let jamMasuk = item.masuk || "-";
+                let jamPulang = item.pulang || "-";
+                
+                // Cek apakah ada link foto (menggunakan logika dari log Anda)
+                // Jika server mengirim 1 link foto, pastikan ini sesuai struktur datanya
+                let foto = item.foto || ""; 
 
-            if (!dataGabung[nama]) {
-                dataGabung[nama] = { nama: nama, masuk: "-", pulang: "-", fotoMasuk: null, fotoPulang: null };
-            }
+                let btnMasuk = (jamMasuk !== "-") ? 
+                    `<a href="${foto}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+                    `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+                
+                let btnPulang = (jamPulang !== "-") ? 
+                    `<a href="${foto}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+                    `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
 
-            // Memisahkan data berdasarkan tipe absen yang dikirim dari server
-            // Pastikan server mengirimkan property 'tipe' atau setara agar kita bisa membedakannya
-            if (item.tipe && item.tipe.toUpperCase() === 'MASUK') {
-                dataGabung[nama].masuk = item.jam || "-";
-                dataGabung[nama].fotoMasuk = item.foto;
-            } else if (item.tipe && item.tipe.toUpperCase() === 'PULANG') {
-                dataGabung[nama].pulang = item.jam || "-";
-                dataGabung[nama].fotoPulang = item.foto;
-            } else {
-                // Fallback jika server tidak mengirim property 'tipe' secara eksplisit
-                // Kita asumsikan data pertama adalah masuk
-                if (dataGabung[nama].masuk === "-") {
-                    dataGabung[nama].masuk = item.masuk || "-";
-                    dataGabung[nama].fotoMasuk = item.foto;
-                } else {
-                    dataGabung[nama].pulang = item.pulang || "-";
-                    dataGabung[nama].fotoPulang = item.foto;
-                }
-            }
-        });
-
-        // 2. Menampilkan data ke tabel
-        Object.values(dataGabung).forEach(item => {
-            let btnMasuk = item.fotoMasuk ? 
-                `<a href="${item.fotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
-                `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
-            
-            let btnPulang = item.fotoPulang ? 
-                `<a href="${item.fotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
-                `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
-
-            tbody.innerHTML += `<tr>
-                <td style="white-space: nowrap;"><strong>${item.nama}</strong><br>
-                    <button class="btn btn-sm btn-outline-primary py-0 px-1 mt-1" onclick="bukaDetailRekap('${item.nama}', '${sheetId}')">Detail</button>
-                </td>
-                <td>${item.masuk}</td>
-                <td>${item.pulang}</td>
-                <td>${btnMasuk}</td>
-                <td>${btnPulang}</td>
-            </tr>`;
-        });
+                tbody.innerHTML += `<tr>
+                    <td><strong>${nama}</strong></td>
+                    <td>${jamMasuk}</td>
+                    <td>${jamPulang}</td>
+                    <td>${btnMasuk}</td>
+                    <td>${btnPulang}</td>
+                </tr>`;
+            });
         } else {
-            tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Data kosong atau gagal dimuat</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Data tidak ditemukan</td></tr>";
         }
     })
     .catch(err => {
-        console.error("Error pada fetch:", err);
-        alert("Gagal koneksi ke server, cek koneksi internet.");
+        console.error("Error:", err);
+        alert("Gagal memuat data.");
     });
 }
 </script>
