@@ -851,26 +851,45 @@ function muatDataMonitor(area, sheetId) {
         tbody.innerHTML = "";
 
         if (res && res.status === "success" && res.data) {
-           // 1. Proses pengelompokan data
+        // 1. Proses pengelompokan data
         let dataGabung = {};
         res.data.forEach(item => {
-            // Karena data sudah berbentuk object {nama, masuk, pulang, foto}
-            let nama = item.nama; 
+            let nama = item.nama;
             if (!nama) return;
 
-            // Masukkan data langsung ke objek
-            dataGabung[nama] = { 
-                nama: nama, 
-                masuk: item.masuk || "-", 
-                pulang: item.pulang || "-", 
-                foto: item.foto || null 
-            };
+            if (!dataGabung[nama]) {
+                dataGabung[nama] = { nama: nama, masuk: "-", pulang: "-", fotoMasuk: null, fotoPulang: null };
+            }
+
+            // Memisahkan data berdasarkan tipe absen yang dikirim dari server
+            // Pastikan server mengirimkan property 'tipe' atau setara agar kita bisa membedakannya
+            if (item.tipe && item.tipe.toUpperCase() === 'MASUK') {
+                dataGabung[nama].masuk = item.jam || "-";
+                dataGabung[nama].fotoMasuk = item.foto;
+            } else if (item.tipe && item.tipe.toUpperCase() === 'PULANG') {
+                dataGabung[nama].pulang = item.jam || "-";
+                dataGabung[nama].fotoPulang = item.foto;
+            } else {
+                // Fallback jika server tidak mengirim property 'tipe' secara eksplisit
+                // Kita asumsikan data pertama adalah masuk
+                if (dataGabung[nama].masuk === "-") {
+                    dataGabung[nama].masuk = item.masuk || "-";
+                    dataGabung[nama].fotoMasuk = item.foto;
+                } else {
+                    dataGabung[nama].pulang = item.pulang || "-";
+                    dataGabung[nama].fotoPulang = item.foto;
+                }
+            }
         });
 
         // 2. Menampilkan data ke tabel
         Object.values(dataGabung).forEach(item => {
-            let btn = item.foto ? 
-                `<a href="${item.foto}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+            let btnMasuk = item.fotoMasuk ? 
+                `<a href="${item.fotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+                `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+            
+            let btnPulang = item.fotoPulang ? 
+                `<a href="${item.fotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
                 `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
 
             tbody.innerHTML += `<tr>
@@ -879,8 +898,8 @@ function muatDataMonitor(area, sheetId) {
                 </td>
                 <td>${item.masuk}</td>
                 <td>${item.pulang}</td>
-                <td>${btn}</td>
-                <td>${btn}</td>
+                <td>${btnMasuk}</td>
+                <td>${btnPulang}</td>
             </tr>`;
         });
         } else {
