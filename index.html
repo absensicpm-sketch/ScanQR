@@ -878,8 +878,6 @@ res.data.forEach(item => {
         dataGabung[nama].fotoPulang = foto;
     }
 });
-            });
-
             Object.values(dataGabung).forEach(item => {
                 let btnMasuk = item.fotoMasuk ? `<a href="${item.fotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
                 let btnPulang = item.fotoPulang ? `<a href="${item.fotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
