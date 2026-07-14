@@ -51,7 +51,10 @@
                     <label class="form-label fw-bold">Password</label>
                     <input type="password" id="password" class="form-control" placeholder="Masukkan kata sandi">
                 </div>
-                
+                <div class="form-check mb-3">
+    <input type="checkbox" class="form-check-input" id="ingatSaya">
+    <label class="form-check-label" for="ingatSaya">Ingat Saya</label>
+</div>
                 <button onclick="prosesLogin()" id="btnLogin" class="btn btn-masuk-kuning w-100 fw-bold py-2.5 fs-5 shadow-sm">Masuk Aplikasi</button>
             </div>
             
@@ -293,6 +296,7 @@
 function prosesLogin() {
     const user = document.getElementById("username").value.trim();
     const pass = document.getElementById("password").value.trim();
+    const ingatSaya = document.getElementById("ingatSaya").checked; // Ambil status checkbox
     const btn = document.getElementById("btnLogin");
     const alertBox = document.getElementById("loginAlert");
 
@@ -317,6 +321,15 @@ function prosesLogin() {
         btn.innerText = "Masuk Aplikasi";
         
         if (res.status === "success") {
+            // Logika Simpan Password ke localStorage
+            if (ingatSaya) {
+                localStorage.setItem("cpm_user", user);
+                localStorage.setItem("cpm_pass", pass);
+            } else {
+                localStorage.removeItem("cpm_user");
+                localStorage.removeItem("cpm_pass");
+            }
+
             document.getElementById("loginSection").classList.add("hidden-section");
 
             if (res.role === "kacab") {
@@ -361,7 +374,7 @@ function prosesLogin() {
         btn.innerText = "Masuk Aplikasi";
         alertBox.innerText = "Error koneksi: " + err.message;
         alertBox.classList.remove("d-none");
-        console.error("Error Fetch:", err); // Tambahkan log untuk melihat errornya
+        console.error("Error Fetch:", err);
     });
 }
 // ...
@@ -815,6 +828,16 @@ function prosesLogin() {
     // Tampilkan kembali layar login
     document.getElementById("loginSection").classList.remove("hidden-section");
 }
+    window.onload = function() {
+    let savedUser = localStorage.getItem("cpm_user");
+    let savedPass = localStorage.getItem("cpm_pass");
+
+    if (savedUser && savedPass) {
+        document.getElementById("username").value = savedUser;
+        document.getElementById("password").value = savedPass;
+        document.getElementById("ingatSaya").checked = true;
+    }
+};
 function muatDataMonitorSaatRefresh() {
         console.log("Memulai proses refresh data...");
         // Mengambil area dari teks di header
