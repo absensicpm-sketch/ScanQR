@@ -828,15 +828,32 @@ function prosesLogin() {
     // Tampilkan kembali layar login
     document.getElementById("loginSection").classList.remove("hidden-section");
 }
-    window.onload = function() {
+   window.onload = function() {
     let savedUser = localStorage.getItem("cpm_user");
     let savedPass = localStorage.getItem("cpm_pass");
 
+    // Mengisi data jika ada yang tersimpan
     if (savedUser && savedPass) {
         document.getElementById("username").value = savedUser;
         document.getElementById("password").value = savedPass;
         document.getElementById("ingatSaya").checked = true;
     }
+
+    // Event listener untuk membersihkan password saat username diubah
+    document.getElementById("username").addEventListener("input", function() {
+        let savedUser = localStorage.getItem("cpm_user");
+        let savedPass = localStorage.getItem("cpm_pass");
+
+        // Jika username yang diketik tidak sama dengan yang tersimpan, kosongkan password
+        if (this.value !== savedUser) {
+            document.getElementById("password").value = "";
+            document.getElementById("ingatSaya").checked = false;
+        } else {
+            // Jika diketik kembali ke user yang tersimpan, isi otomatis lagi
+            document.getElementById("password").value = savedPass || "";
+            document.getElementById("ingatSaya").checked = true;
+        }
+    });
 };
 function muatDataMonitorSaatRefresh() {
         console.log("Memulai proses refresh data...");
