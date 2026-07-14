@@ -70,7 +70,8 @@
                     <th>Nama</th>
                     <th>Masuk</th>
                     <th>Pulang</th>
-                    <th>Foto</th>
+                    <th>Foto Masuk</th>
+                    <th>Foto Pulang</th>
                 </tr>
             </thead>
             <tbody id="tabelMonitorBody">
@@ -847,7 +848,28 @@ function muatDataMonitor(area, sheetId) {
         tbody.innerHTML = "";
 
         if (res.status === "success" && res.data && res.data.length > 0) {
+            // 1. Logika Pengelompokan Data
+            let dataGabung = {};
             res.data.forEach(item => {
+                let nama = item.nama;
+                if (!dataGabung[nama]) {
+                    dataGabung[nama] = { nama: nama, masuk: "-", pulang: "-", fotoMasuk: null, fotoPulang: null };
+                }
+                
+                if (item.tipeAbsen === 'MASUK') { // Sesuaikan dengan key yang dikirim Apps Script
+                    dataGabung[nama].masuk = item.masuk;
+                    dataGabung[nama].fotoMasuk = item.foto;
+                } else if (item.tipeAbsen === 'PULANG') { // Sesuaikan dengan key yang dikirim Apps Script
+                    dataGabung[nama].pulang = item.pulang;
+                    dataGabung[nama].fotoPulang = item.foto;
+                }
+            });
+
+            // 2. Loop object untuk mengisi tabel
+            Object.values(dataGabung).forEach(item => {
+                let linkMasuk = item.fotoMasuk ? `<a href="${item.fotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : "-";
+                let linkPulang = item.fotoPulang ? `<a href="${item.fotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : `<span class="small text-muted">${item.nama} belum melakukan absen pulang.</span>`;
+
                 tbody.innerHTML += `<tr>
                     <td>
                         <strong>${item.nama}</strong><br>
@@ -856,11 +878,12 @@ function muatDataMonitor(area, sheetId) {
                     </td>
                     <td>${item.masuk}</td>
                     <td>${item.pulang}</td>
-                    <td><a href="${item.foto}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a></td>
+                    <td>${linkMasuk}</td>
+                    <td>${linkPulang}</td>
                 </tr>`;
             });
         } else {
-            tbody.innerHTML = "<tr><td colspan='4' class='text-center'>Tidak ada data hari ini</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Tidak ada data hari ini</td></tr>";
         }
     })
     .catch(err => {
