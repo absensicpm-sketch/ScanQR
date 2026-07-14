@@ -793,65 +793,79 @@ function prosesLogin() {
         logout();
     }
 
-  function logout() {
-    // 1. Matikan hardware & scanner (Kode Anda sudah benar)
+function logout() {
+    // 1. Hapus kredensial yang tersimpan di browser
+    localStorage.removeItem("cpm_user");
+    localStorage.removeItem("cpm_pass");
+    
+    // 2. Matikan hardware & scanner
     matikanSemuaAliranKamera();
-    if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+    if (typeof html5QrcodeScanner !== 'undefined' && html5QrcodeScanner && html5QrcodeScanner.isScanning) {
         html5QrcodeScanner.stop();
     }
-    if (html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) {
+    if (typeof html5QrcodeScannerToilet !== 'undefined' && html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) {
         html5QrcodeScannerToilet.stop();
     }
 
-    // 2. Tambahkan pembersihan Session
-    sessionStorage.clear(); // Sangat penting untuk memastikan status login hilang
-
-    // 3. Hapus input credential
-    document.getElementById("username").value = "";
-    document.getElementById("password").value = "";
-      
-    // TAMBAHKAN INI:
+    // 3. Bersihkan Session dan Variabel Global
+    sessionStorage.clear();
     globalSheetId = "";
     cabangTerpilih = "";
     daftarCabang = [];
     userCoords = "";
 
-    // 4. Reset tampilan semua section
-    document.getElementById("karyawanSection").classList.add("hidden-section");
-    document.getElementById("toiletSection").classList.add("hidden-section");
-    document.getElementById("absensiForm").classList.add("hidden-section");
-    document.getElementById("dashboardMenuSection").classList.add("hidden-section");
+    // 4. Bersihkan input di layar login
+    const userField = document.getElementById("username");
+    const passField = document.getElementById("password");
+    const rememberBox = document.getElementById("ingatSaya");
     
-    // TAMBAHAN: Sembunyikan juga dashboard Kacab
-    document.getElementById("dashboardKacabSection").classList.add("hidden-section");
+    if (userField) userField.value = "";
+    if (passField) passField.value = "";
+    if (rememberBox) rememberBox.checked = false;
     
-    // Tampilkan kembali layar login
-    document.getElementById("loginSection").classList.remove("hidden-section");
+    // 5. Reset tampilan semua section
+    const sectionsToHide = [
+        "karyawanSection", 
+        "toiletSection", 
+        "absensiForm", 
+        "dashboardMenuSection", 
+        "dashboardKacabSection"
+    ];
+    
+    sectionsToHide.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add("hidden-section");
+    });
+    
+    // 6. Tampilkan kembali layar login
+    const loginSection = document.getElementById("loginSection");
+    if (loginSection) loginSection.classList.remove("hidden-section");
+
+    console.log("Logout berhasil, data sesi dan kredensial dibersihkan.");
 }
    window.onload = function() {
     let savedUser = localStorage.getItem("cpm_user");
     let savedPass = localStorage.getItem("cpm_pass");
 
-    // Mengisi data jika ada yang tersimpan
+    // Jika ada data tersimpan, isi form
     if (savedUser && savedPass) {
         document.getElementById("username").value = savedUser;
         document.getElementById("password").value = savedPass;
         document.getElementById("ingatSaya").checked = true;
     }
 
-    // Event listener untuk membersihkan password saat username diubah
-    document.getElementById("username").addEventListener("input", function() {
+    // Pengecekan saat user selesai mengetik username (event blur)
+    document.getElementById("username").addEventListener("blur", function() {
+        let currentInput = this.value;
         let savedUser = localStorage.getItem("cpm_user");
         let savedPass = localStorage.getItem("cpm_pass");
 
-        // Jika username yang diketik tidak sama dengan yang tersimpan, kosongkan password
-        if (this.value !== savedUser) {
+        if (currentInput === savedUser && savedUser !== "") {
+            document.getElementById("password").value = savedPass;
+            document.getElementById("ingatSaya").checked = true;
+        } else {
             document.getElementById("password").value = "";
             document.getElementById("ingatSaya").checked = false;
-        } else {
-            // Jika diketik kembali ke user yang tersimpan, isi otomatis lagi
-            document.getElementById("password").value = savedPass || "";
-            document.getElementById("ingatSaya").checked = true;
         }
     });
 };
