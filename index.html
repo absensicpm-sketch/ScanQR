@@ -862,18 +862,20 @@ function muatDataMonitor(area, sheetId) {
                     dataGabung[nama] = { nama: nama, masuk: "-", pulang: "-", fotoMasuk: null, fotoPulang: null };
                 }
                 
-                let ts = item['Timestamp'] || "";
-                let jam = ts.includes(" ") ? ts.split(' ')[1] : ts;
-                let tipe = item['TIPE ABSEN'] || "";
-                let foto = item['FOTO SELFY'] || item.foto || "";
-                
-                if (tipe === 'MASUK') {
-                    dataGabung[nama].masuk = jam;
-                    dataGabung[nama].fotoMasuk = foto;
-                } else if (tipe === 'PULANG') {
-                    dataGabung[nama].pulang = jam;
-                    dataGabung[nama].fotoPulang = foto;
-                }
+                // Ganti bagian pengambilan jam di dalam loop menjadi ini:
+let ts = item['Timestamp'] || item['timestamp'] || ""; 
+let jam = ts.toString().split(' ').length > 1 ? ts.toString().split(' ')[1] : ts.toString();
+
+// Dan pastikan pengecekan tipe absen juga fleksibel:
+let tipe = (item['TIPE ABSEN'] || item['tipe_absen'] || "").toUpperCase();
+
+if (tipe === 'MASUK') {
+    dataGabung[nama].masuk = jam;
+    dataGabung[nama].fotoMasuk = foto;
+} else if (tipe === 'PULANG') {
+    dataGabung[nama].pulang = jam;
+    dataGabung[nama].fotoPulang = foto;
+}
             });
 
             Object.values(dataGabung).forEach(item => {
