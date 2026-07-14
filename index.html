@@ -899,31 +899,33 @@ function muatDataMonitor(area, sheetId) {
         if (res && res.status === "success" && res.data) {
             // Karena data dari server sudah dalam format per orang (sudah ada masuk & pulang), 
             // kita tinggal menampilkannya langsung tanpa perlu pengelompokan rumit.
-            res.data.forEach(item => {
-                let nama = item.nama || "-";
-                let jamMasuk = item.masuk || "-";
-                let jamPulang = item.pulang || "-";
-                
-                // Cek apakah ada link foto (menggunakan logika dari log Anda)
-                // Jika server mengirim 1 link foto, pastikan ini sesuai struktur datanya
-                let foto = item.foto || ""; 
+// Ganti bagian di dalam res.data.forEach(...) dengan ini:
+res.data.forEach(item => {
+    let nama = item.nama || "-";
+    let jamMasuk = item.masuk || "-";
+    let jamPulang = item.pulang || "-";
+    
+    // Pastikan Anda menyesuaikan nama properti (fotoMasuk/fotoPulang) 
+    // dengan apa yang sebenarnya dikirim oleh Google Apps Script Anda
+    let linkFotoMasuk = item.fotoMasuk || item.foto || ""; 
+    let linkFotoPulang = item.fotoPulang || item.foto || ""; 
 
-                let btnMasuk = (jamMasuk !== "-") ? 
-                    `<a href="${foto}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
-                    `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
-                
-                let btnPulang = (jamPulang !== "-") ? 
-                    `<a href="${foto}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
-                    `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+    let btnMasuk = (jamMasuk !== "-") ? 
+        `<a href="${linkFotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+        `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+    
+    let btnPulang = (jamPulang !== "-") ? 
+        `<a href="${linkFotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+        `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
 
-                tbody.innerHTML += `<tr>
-                    <td><strong>${nama}</strong></td>
-                    <td>${jamMasuk}</td>
-                    <td>${jamPulang}</td>
-                    <td>${btnMasuk}</td>
-                    <td>${btnPulang}</td>
-                </tr>`;
-            });
+    tbody.innerHTML += `<tr>
+        <td><strong>${nama}</strong></td>
+        <td>${jamMasuk}</td>
+        <td>${jamPulang}</td>
+        <td>${btnMasuk}</td>
+        <td>${btnPulang}</td>
+    </tr>`;
+});
         } else {
             tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Data tidak ditemukan</td></tr>";
         }
