@@ -853,44 +853,50 @@ function muatDataMonitor(area, sheetId) {
         if (res && res.status === "success" && res.data) {
             let dataGabung = {};
             
-   res.data.forEach(item => {
-    // Normalisasi key agar tahan terhadap spasi/perbedaan huruf besar-kecil
-    let nama = item['NAMA KARYAWAN'];
-    if (!nama) return;
+// 1. Proses pengelompokan data
+        let dataGabung = {};
+        res.data.forEach(item => {
+            let nama = item['NAMA KARYAWAN'];
+            if (!nama) return;
 
-    if (!dataGabung[nama]) {
-        dataGabung[nama] = { nama: nama, masuk: "-", pulang: "-", fotoMasuk: null, fotoPulang: null };
-    }
-    
-    // Ambil data dengan ejaan yang persis dari gambar Anda
-    let ts = item['Timestamp'] || "";
-    let jam = ts.toString().includes(" ") ? ts.toString().split(' ')[1] : ts.toString();
-    let foto = item['FOTO SELFY'] || "";
-    let tipe = (item['TIPE ABSEN'] || "").toString().trim().toUpperCase();
-    
-    // Cek apakah tipe masuk atau pulang
-    if (tipe === 'MASUK') {
-        dataGabung[nama].masuk = jam;
-        dataGabung[nama].fotoMasuk = foto;
-    } else if (tipe === 'PULANG') {
-        dataGabung[nama].pulang = jam;
-        dataGabung[nama].fotoPulang = foto;
-    }
-});
-            Object.values(dataGabung).forEach(item => {
-                let btnMasuk = item.fotoMasuk ? `<a href="${item.fotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
-                let btnPulang = item.fotoPulang ? `<a href="${item.fotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+            if (!dataGabung[nama]) {
+                dataGabung[nama] = { nama: nama, masuk: "-", pulang: "-", fotoMasuk: null, fotoPulang: null };
+            }
+            
+            let ts = item['Timestamp'] || "";
+            let jam = ts.toString().includes(" ") ? ts.toString().split(' ')[1] : ts.toString();
+            let foto = item['FOTO SELFY'] || "";
+            let tipe = (item['TIPE ABSEN'] || "").toString().trim().toUpperCase();
+            
+            if (tipe === 'MASUK') {
+                dataGabung[nama].masuk = jam;
+                dataGabung[nama].fotoMasuk = foto;
+            } else if (tipe === 'PULANG') {
+                dataGabung[nama].pulang = jam;
+                dataGabung[nama].fotoPulang = foto;
+            }
+        });
 
-                tbody.innerHTML += `<tr>
-                    <td style="white-space: nowrap;"><strong>${item.nama}</strong><br>
-                        <button class="btn btn-sm btn-outline-primary py-0 px-1 mt-1" onclick="bukaDetailRekap('${item.nama}', '${sheetId}')">Detail</button>
-                    </td>
-                    <td>${item.masuk}</td>
-                    <td>${item.pulang}</td>
-                    <td>${btnMasuk}</td>
-                    <td>${btnPulang}</td>
-                </tr>`;
-            });
+        // 2. Menampilkan data ke tabel
+        Object.values(dataGabung).forEach(item => {
+            let btnMasuk = item.fotoMasuk ? 
+                `<a href="${item.fotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+                `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+            
+            let btnPulang = item.fotoPulang ? 
+                `<a href="${item.fotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+                `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+
+            tbody.innerHTML += `<tr>
+                <td style="white-space: nowrap;"><strong>${item.nama}</strong><br>
+                    <button class="btn btn-sm btn-outline-primary py-0 px-1 mt-1" onclick="bukaDetailRekap('${item.nama}', '${sheetId}')">Detail</button>
+                </td>
+                <td>${item.masuk}</td>
+                <td>${item.pulang}</td>
+                <td>${btnMasuk}</td>
+                <td>${btnPulang}</td>
+            </tr>`;
+        });
         } else {
             tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Data kosong atau gagal dimuat</td></tr>";
         }
