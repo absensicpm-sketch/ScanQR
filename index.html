@@ -10,6 +10,7 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #f4f6f9; }
+        body { overscroll-behavior-y: contain; /* Mencegah pull-to-refresh mobile */}
         .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .hidden-section { display: none; }
         .camera-container { position: relative; width: 100%; max-width: 340px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 4px solid #fff; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
@@ -870,18 +871,18 @@ function logout() {
     });
 };
 function muatDataMonitorSaatRefresh() {
-        console.log("Memulai proses refresh data...");
-        // Mengambil area dari teks di header
-        let areaText = document.getElementById("displayAreaKacab").innerText.replace("Area: ", "");
-        
-        // Memanggil fungsi utama untuk muat data dengan variabel globalSheetId yang sudah ada
-        if(typeof globalSheetId !== 'undefined' && globalSheetId) {
-            muatDataMonitor(areaText, globalSheetId);
-        } else {
-            // Jika variabel globalSheetId hilang karena refresh browser, reload halaman
-            window.location.reload(); 
-        }
+    console.log("Memulai proses refresh data...");
+    let areaText = document.getElementById("displayAreaKacab").innerText.replace("Area: ", "");
+    
+    // PERBAIKAN: Jika sheetId hilang, jangan reload. 
+    // Tapi coba panggil login ulang atau beri notifikasi agar user tidak bingung.
+    if(typeof globalSheetId !== 'undefined' && globalSheetId) {
+        muatDataMonitor(areaText, globalSheetId);
+    } else {
+        // GANTI: Jangan reload, beri peringatan saja
+        alert("Sesi monitor kadaluarsa. Silakan log out dan login kembali.");
     }
+}
 function muatDataMonitor(area, sheetId) {
     console.log("Memulai request ke server...");
     
