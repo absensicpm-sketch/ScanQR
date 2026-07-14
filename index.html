@@ -323,13 +323,15 @@ function prosesLogin() {
         
         if (res.status === "success") {
             // Logika Simpan Password ke localStorage
-            if (ingatSaya) {
-                localStorage.setItem("cpm_user", user);
-                localStorage.setItem("cpm_pass", pass);
-            } else {
-                localStorage.removeItem("cpm_user");
-                localStorage.removeItem("cpm_pass");
-            }
+          if (ingatSaya) {
+    // Simpan data dalam bentuk objek JSON agar setiap user punya slot sendiri
+    let dataLogin = { password: pass };
+    localStorage.setItem("cpm_save_" + user, JSON.stringify(dataLogin));
+    // Simpan username terakhir yang login agar bisa kita track
+    localStorage.setItem("cpm_last_user", user); 
+} else {
+    localStorage.removeItem("cpm_save_" + user);
+}
 
             document.getElementById("loginSection").classList.add("hidden-section");
 
@@ -840,25 +842,22 @@ function logout() {
 
     console.log("Logout berhasil, data sesi dan kredensial dibersihkan.");
 }
-   window.onload = function() {
-    let savedUser = localStorage.getItem("cpm_user");
-    let savedPass = localStorage.getItem("cpm_pass");
-
-    // Jika ada data tersimpan, isi form
-    if (savedUser && savedPass) {
-        document.getElementById("username").value = savedUser;
-        document.getElementById("password").value = savedPass;
-        document.getElementById("ingatSaya").checked = true;
+window.onload = function() {
+    // Saat halaman dimuat, isi dengan username terakhir jika ada
+    let lastUser = localStorage.getItem("cpm_last_user");
+    if (lastUser) {
+        document.getElementById("username").value = lastUser;
+        // Trigger event blur untuk memicu pengisian password otomatis
+        document.getElementById("username").dispatchEvent(new Event('blur'));
     }
 
-    // Pengecekan saat user selesai mengetik username (event blur)
     document.getElementById("username").addEventListener("blur", function() {
-        let currentInput = this.value;
-        let savedUser = localStorage.getItem("cpm_user");
-        let savedPass = localStorage.getItem("cpm_pass");
+        let inputUser = this.value.trim();
+        let savedData = localStorage.getItem("cpm_save_" + inputUser);
 
-        if (currentInput === savedUser && savedUser !== "") {
-            document.getElementById("password").value = savedPass;
+        if (savedData) {
+            let data = JSON.parse(savedData);
+            document.getElementById("password").value = data.password;
             document.getElementById("ingatSaya").checked = true;
         } else {
             document.getElementById("password").value = "";
