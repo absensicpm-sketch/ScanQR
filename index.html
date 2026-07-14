@@ -55,11 +55,12 @@
                 <button onclick="prosesLogin()" id="btnLogin" class="btn btn-masuk-kuning w-100 fw-bold py-2.5 fs-5 shadow-sm">Masuk Aplikasi</button>
             </div>
             
+<!-- Bagian Dashboard KACAB saja -->
 <div id="dashboardKacabSection" class="hidden-section">
     <div class="card p-3 mb-3" style="background: #E30613; color: white; border-radius: 15px;">
         <h5 class="fw-bold" id="displayAreaKacab">Area: -</h5>
         <p class="small mb-0">Monitor Absensi Hari Ini</p>
-        <p id="tanggalHariIni" class="small fw-bold mb-0"></p> <!-- Elemen baru untuk tanggal -->
+        <p id="tanggalHariIni" class="small fw-bold mb-0"></p>
     </div>
     
     <div class="table-responsive">
@@ -73,44 +74,48 @@
                 </tr>
             </thead>
             <tbody id="tabelMonitorBody">
-                </tbody>
+            </tbody>
         </table>
     </div>
- <!-- Tombol Aksi Baru -->
-<div class="d-flex gap-2 mt-3 mb-4">
-    <button type="button" class="btn btn-outline-secondary w-50" onclick="muatDataMonitorSaatRefresh()">Refresh</button>
-    <button class="btn btn-danger w-50" onclick="logout()">Keluar</button>
-</div>
-            <div id="dashboardMenuSection" class="card card-custom p-4 text-start bg-white hidden-section">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <span class="badge bg-danger px-3 py-2">SESI AKTIF BERHASIL TERKUNCI</span>
-                    <button onclick="tutupDanLogout()" class="btn btn-sm btn-outline-danger fw-bold">🚪 Keluar</button>
-                </div>
-                
-                <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-bars-staggered me-2 text-danger"></i>Pilih Menu Operasional:</h5>
-                
-                <button onclick="navigasiKeMenu('absen')" class="btn btn-menu-pilihan w-100 d-flex align-items-center mb-3">
-                    <div class="bg-primary-subtle text-primary rounded-3 p-3 me-3 fs-3"><i class="fa-solid fa-user-clock"></i></div>
-                    <div>
-                        <div class="fw-bold text-dark fs-5">Absensi Kehadiran</div>
-                        <div class="text-muted small">Scan QR Code untuk rekam Absen Masuk atau Pulang Kerja.</div>
-                    </div>
-                </button>
-                
-                <button onclick="navigasiKeMenu('toilet')" class="btn btn-menu-pilihan w-100 d-flex align-items-center">
-                    <div class="bg-success-subtle text-success rounded-3 p-3 me-3 fs-3"><i class="fa-solid fa-restroom"></i></div>
-                    <div>
-                        <div class="fw-bold text-dark fs-5">Higienitas &amp; Kontrol Toilet</div>
-                        <div class="text-muted small">Isi laporan inspeksi kebersihan fasilitas toilet berkala.</div>
-                    </div>
-                </button>
-            </div>
 
-            <div id="karyawanSection" class="card card-custom p-4 bg-white text-start hidden-section">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <button onclick="kembaliKeMenuUtama()" class="btn btn-sm btn-secondary fw-bold"><i class="fa-solid fa-chevron-left me-1"></i> Kembali</button>
-                    <span class="badge bg-success px-3 py-2">MENU: ABSENSI</span>
-                </div>
+    <div class="d-flex gap-2 mt-3 mb-4">
+        <button type="button" class="btn btn-outline-secondary w-50" onclick="muatDataMonitorSaatRefresh()">Refresh</button>
+        <button class="btn btn-danger w-50" onclick="logout()">Keluar</button>
+    </div>
+</div>
+
+<!-- Bagian Menu Karyawan (DIPINDAHKAN KELUAR) -->
+<div id="dashboardMenuSection" class="card card-custom p-4 text-start bg-white hidden-section">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <span class="badge bg-danger px-3 py-2">SESI AKTIF BERHASIL TERKUNCI</span>
+        <button onclick="tutupDanLogout()" class="btn btn-sm btn-outline-danger fw-bold">🚪 Keluar</button>
+    </div>
+    
+    <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-bars-staggered me-2 text-danger"></i>Pilih Menu Operasional:</h5>
+    
+    <button onclick="navigasiKeMenu('absen')" class="btn btn-menu-pilihan w-100 d-flex align-items-center mb-3">
+        <div class="bg-primary-subtle text-primary rounded-3 p-3 me-3 fs-3"><i class="fa-solid fa-user-clock"></i></div>
+        <div>
+            <div class="fw-bold text-dark fs-5">Absensi Kehadiran</div>
+            <div class="text-muted small">Scan QR Code untuk rekam Absen Masuk atau Pulang Kerja.</div>
+        </div>
+    </button>
+    
+    <button onclick="navigasiKeMenu('toilet')" class="btn btn-menu-pilihan w-100 d-flex align-items-center">
+        <div class="bg-success-subtle text-success rounded-3 p-3 me-3 fs-3"><i class="fa-solid fa-restroom"></i></div>
+        <div>
+            <div class="fw-bold text-dark fs-5">Higienitas &amp; Kontrol Toilet</div>
+            <div class="text-muted small">Isi laporan inspeksi kebersihan fasilitas toilet berkala.</div>
+        </div>
+    </button>
+</div>
+
+<!-- Bagian Section Karyawan (DIPINDAHKAN KELUAR) -->
+<div id="karyawanSection" class="card card-custom p-4 bg-white text-start hidden-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <button onclick="kembaliKeMenuUtama()" class="btn btn-sm btn-secondary fw-bold"><i class="fa-solid fa-chevron-left me-1"></i> Kembali</button>
+        <span class="badge bg-success px-3 py-2">MENU: ABSENSI</span>
+    </div>
         
                 <div id="gpsAlert" class="alert alert-warning text-center fw-bold py-2.5 mb-3">Memindai koordinat lokasi satelit GPS...</div>
 
