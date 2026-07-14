@@ -794,11 +794,7 @@ function prosesLogin() {
         logout();
     }
 
-function logout() {
-    // 1. Hapus kredensial yang tersimpan di browser
-    localStorage.removeItem("cpm_user");
-    localStorage.removeItem("cpm_pass");
-    
+function logout() {  
     // 2. Matikan hardware & scanner
     matikanSemuaAliranKamera();
     if (typeof html5QrcodeScanner !== 'undefined' && html5QrcodeScanner && html5QrcodeScanner.isScanning) {
