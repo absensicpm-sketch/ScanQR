@@ -853,29 +853,31 @@ function muatDataMonitor(area, sheetId) {
         if (res && res.status === "success" && res.data) {
             let dataGabung = {};
             
-            res.data.forEach(item => {
-                // Gunakan cara akses yang lebih fleksibel
-                let nama = item['NAMA KARYAWAN'] || item.nama; 
-                if (!nama) return;
+res.data.forEach(item => {
+    // Mengambil nama berdasarkan kolom "NAMA KARYAWAN"
+    let nama = item['NAMA KARYAWAN']; 
+    if (!nama) return; 
 
-                if (!dataGabung[nama]) {
-                    dataGabung[nama] = { nama: nama, masuk: "-", pulang: "-", fotoMasuk: null, fotoPulang: null };
-                }
-                
-                // Ganti bagian pengambilan jam di dalam loop menjadi ini:
-let ts = item['Timestamp'] || item['timestamp'] || ""; 
-let jam = ts.toString().split(' ').length > 1 ? ts.toString().split(' ')[1] : ts.toString();
-
-// Dan pastikan pengecekan tipe absen juga fleksibel:
-let tipe = (item['TIPE ABSEN'] || item['tipe_absen'] || "").toUpperCase();
-
-if (tipe === 'MASUK') {
-    dataGabung[nama].masuk = jam;
-    dataGabung[nama].fotoMasuk = foto;
-} else if (tipe === 'PULANG') {
-    dataGabung[nama].pulang = jam;
-    dataGabung[nama].fotoPulang = foto;
-}
+    if (!dataGabung[nama]) {
+        dataGabung[nama] = { nama: nama, masuk: "-", pulang: "-", fotoMasuk: null, fotoPulang: null };
+    }
+    
+    // Mengambil timestamp dari kolom "Timestamp"
+    let ts = item['Timestamp'] || "";
+    let jam = ts.includes(" ") ? ts.split(' ')[1] : ts;
+    
+    // Mengambil foto dari kolom "FOTO SELFY"
+    let foto = item['FOTO SELFY'] || "";
+    
+    // Memeriksa tipe absen di kolom "TIPE ABSEN"
+    if (item['TIPE ABSEN'] === 'MASUK') {
+        dataGabung[nama].masuk = jam;
+        dataGabung[nama].fotoMasuk = foto;
+    } else if (item['TIPE ABSEN'] === 'PULANG') {
+        dataGabung[nama].pulang = jam;
+        dataGabung[nama].fotoPulang = foto;
+    }
+});
             });
 
             Object.values(dataGabung).forEach(item => {
