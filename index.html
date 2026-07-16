@@ -964,7 +964,7 @@ function pilihBulanUntukKaryawan(namaKaryawan) {
     .catch(err => console.error("Error:", err));
 }
 function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
-    document.getElementById("cpmModalBody").innerHTML = "Memproses...";
+    document.getElementById("cpmModalBody").innerHTML = "Memuat data...";
 
     fetch(WEB_APP_URL, {
         method: "POST",
@@ -974,40 +974,28 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
             aksi: "getDetailDataBulanan",
             sheetId: globalSheetId,
             namaSheet: namaBulan,
-            namaKaryawan: namaKaryawan // Kirim nama untuk difilter
+            namaKaryawan: namaKaryawan
         })
     })
     .then(r => r.json())
     .then(res => {
         if (res.status === "success") {
-            let data = res.data;
-            let totalHadir = 0, totalOff = 0;
+            let row = res.data; // Ini adalah satu baris data karyawan tersebut
+            let html = `<h5 class="text-center">History ${namaKaryawan} - ${namaBulan}</h5>
+                        <table class="table table-sm table-bordered">
+                        <thead><tr><th>Tanggal</th><th>Masuk</th><th>Pulang</th></tr></thead><tbody>`;
             
-            // Hitung ringkasan
-            data.slice(1).forEach(r => {
-                if (r[2] === "MASUK") totalHadir++;
-                else if (r[2] === "OFF") totalOff++;
-            });
-
-            let html = `
-                <h5 class="text-center">History Absensi ${namaKaryawan} - ${namaBulan}</h5>
-                <div class="card p-2 mb-3 bg-light">
-                    <strong>Total Hadir: ${totalHadir}</strong> | <strong>Total OFF: ${totalOff}</strong>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered">
-                        <thead><tr><th>Tanggal</th><th>Masuk</th><th>Pulang</th></tr></thead>
-                        <tbody>`;
+            // Loop kolom mulai index 2 (Kolom C) sampai habis
+            // i += 2 karena setiap tanggal terdiri dari 2 kolom (Masuk & Pulang)
+            for (let i = 2; i < row.length; i += 2) {
+                let tanggal = "Tgl " + ((i-2)/2 + 1); // Penanda tanggal
+                let masuk = row[i] || "-";
+                let pulang = row[i+1] || "-";
+                
+                html += `<tr><td>${tanggal}</td><td>${masuk}</td><td>${pulang}</td></tr>`;
+            }
             
-            data.slice(1).forEach(row => {
-                html += `<tr>
-                    <td>${row[1] || "-"}</td>
-                    <td>${row[3] || "-"}</td>
-                    <td>${row[4] || "-"}</td>
-                </tr>`;
-            });
-            
-            html += `</tbody></table></div>`;
+            html += `</tbody></table>`;
             document.getElementById("cpmModalBody").innerHTML = html;
         }
     });
