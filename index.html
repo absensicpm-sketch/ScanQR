@@ -940,19 +940,31 @@ function pilihBulanUntukKaryawan(namaKaryawan) {
     var myModal = new bootstrap.Modal(document.getElementById('cpmModal'));
     myModal.show();
 
-    google.script.run
-        .withSuccessHandler(function(res) {
-            let response = JSON.parse(res);
-            if(response.status === "success") {
-                let html = `<p>Pilih bulan untuk <b>${namaKaryawan}</b>:</p><div class="d-grid gap-2">`;
-                response.data.forEach(bulan => {
-                    html += `<button class="btn btn-outline-danger mb-1" onclick="console.log('Ambil data: ${bulan}')">${bulan}</button>`;
-                });
-                html += `</div>`;
-                document.getElementById("cpmModalBody").innerHTML = html;
-            }
+    // Ganti google.script.run dengan fetch ke WEB_APP_URL Anda
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+            aksi: "getDaftarBulan",
+            sheetId: globalSheetId
         })
-        .getDaftarBulan(globalSheetId);
+    })
+    .then(r => r.json())
+    .then(response => {
+        if(response.status === "success") {
+            let html = `<p>Pilih bulan untuk <b>${namaKaryawan}</b>:</p><div class="d-grid gap-2">`;
+            response.data.forEach(bulan => {
+                html += `<button class="btn btn-outline-danger mb-1" onclick="console.log('Ambil data: ${bulan}')">${bulan}</button>`;
+            });
+            html += `</div>`;
+            document.getElementById("cpmModalBody").innerHTML = html;
+        }
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        document.getElementById("cpmModalBody").innerHTML = "Gagal memuat data.";
+    });
 }
 </script>
 </body>
