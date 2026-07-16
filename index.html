@@ -897,35 +897,34 @@ function muatDataMonitor(area, sheetId) {
         tbody.innerHTML = "";
 
         if (res && res.status === "success" && res.data) {
-            // Karena data dari server sudah dalam format per orang (sudah ada masuk & pulang), 
-            // kita tinggal menampilkannya langsung tanpa perlu pengelompokan rumit.
-// Ganti bagian di dalam res.data.forEach(...) dengan ini:
-res.data.forEach(item => {
-    let nama = item.nama || "-";
-    let jamMasuk = item.masuk || "-";
-    let jamPulang = item.pulang || "-";
-    
-    // Pastikan Anda menyesuaikan nama properti (fotoMasuk/fotoPulang) 
-    // dengan apa yang sebenarnya dikirim oleh Google Apps Script Anda
-    let linkFotoMasuk = item.fotoMasuk || item.foto || ""; 
-    let linkFotoPulang = item.fotoPulang || item.foto || ""; 
+            res.data.forEach(item => {
+                let nama = item.nama || "-";
+                let jamMasuk = item.masuk || "-";
+                let jamPulang = item.pulang || "-";
+                
+                let linkFotoMasuk = item.fotoMasuk || item.foto || ""; 
+                let linkFotoPulang = item.fotoPulang || item.foto || ""; 
 
-    let btnMasuk = (jamMasuk !== "-") ? 
-        `<a href="${linkFotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
-        `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
-    
-    let btnPulang = (jamPulang !== "-") ? 
-        `<a href="${linkFotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
-        `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+                let btnMasuk = (jamMasuk !== "-") ? 
+                    `<a href="${linkFotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+                    `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+                
+                let btnPulang = (jamPulang !== "-") ? 
+                    `<a href="${linkFotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+                    `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
 
-    tbody.innerHTML += `<tr>
-        <td><strong>${nama}</strong></td>
-        <td>${jamMasuk}</td>
-        <td>${jamPulang}</td>
-        <td>${btnMasuk}</td>
-        <td>${btnPulang}</td>
-    </tr>`;
-});
+                // Tombol Detail diletakkan di bawah nama (menggunakan <br>)
+                tbody.innerHTML += `<tr>
+                    <td>
+                        <strong>${nama}</strong><br>
+                        <button class="btn btn-sm btn-outline-primary mt-1" onclick="pilihBulanUntukKaryawan('${nama}')">Detail</button>
+                    </td>
+                    <td>${jamMasuk}</td>
+                    <td>${jamPulang}</td>
+                    <td>${btnMasuk}</td>
+                    <td>${btnPulang}</td>
+                </tr>`;
+            });
         } else {
             tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Data tidak ditemukan</td></tr>";
         }
@@ -934,6 +933,26 @@ res.data.forEach(item => {
         console.error("Error:", err);
         alert("Gagal memuat data.");
     });
+}
+function pilihBulanUntukKaryawan(namaKaryawan) {
+    document.getElementById("cpmModalTitle").innerHTML = "Pilih Periode";
+    document.getElementById("cpmModalBody").innerHTML = "Memuat daftar bulan...";
+    var myModal = new bootstrap.Modal(document.getElementById('cpmModal'));
+    myModal.show();
+
+    google.script.run
+        .withSuccessHandler(function(res) {
+            let response = JSON.parse(res);
+            if(response.status === "success") {
+                let html = `<p>Pilih bulan untuk <b>${namaKaryawan}</b>:</p><div class="d-grid gap-2">`;
+                response.data.forEach(bulan => {
+                    html += `<button class="btn btn-outline-danger mb-1" onclick="console.log('Ambil data: ${bulan}')">${bulan}</button>`;
+                });
+                html += `</div>`;
+                document.getElementById("cpmModalBody").innerHTML = html;
+            }
+        })
+        .getDaftarBulan(globalSheetId);
 }
 </script>
 </body>
