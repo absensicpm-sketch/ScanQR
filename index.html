@@ -964,7 +964,7 @@ function pilihBulanUntukKaryawan(namaKaryawan) {
     .catch(err => console.error("Error:", err));
 }
 function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
-    document.getElementById("cpmModalBody").innerHTML = "Memuat tabel " + namaBulan + "...";
+    document.getElementById("cpmModalBody").innerHTML = "Memproses...";
 
     fetch(WEB_APP_URL, {
         method: "POST",
@@ -973,32 +973,42 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
         body: JSON.stringify({
             aksi: "getDetailDataBulanan",
             sheetId: globalSheetId,
-            namaSheet: namaBulan
+            namaSheet: namaBulan,
+            namaKaryawan: namaKaryawan // Kirim nama untuk difilter
         })
     })
     .then(r => r.json())
     .then(res => {
         if (res.status === "success") {
             let data = res.data;
-            // Membuat tabel HTML
-            let tableHtml = `<div class="table-responsive"><table class="table table-sm table-bordered">
-                <thead><tr><th>No</th><th>Tanggal</th><th>Status</th></tr></thead><tbody>`;
+            let totalHadir = 0, totalOff = 0;
             
-            // Kita mulai dari i=1 untuk melewati baris header (sesuai screenshot Anda)
-            for(let i = 1; i < data.length; i++) {
-                let row = data[i];
-                // Sesuaikan index [0], [1], [2] dengan kolom di spreadsheet Anda
-                tableHtml += `<tr>
-                    <td>${row[0] || i}</td>
+            // Hitung ringkasan
+            data.slice(1).forEach(r => {
+                if (r[2] === "MASUK") totalHadir++;
+                else if (r[2] === "OFF") totalOff++;
+            });
+
+            let html = `
+                <h5 class="text-center">History Absensi ${namaKaryawan} - ${namaBulan}</h5>
+                <div class="card p-2 mb-3 bg-light">
+                    <strong>Total Hadir: ${totalHadir}</strong> | <strong>Total OFF: ${totalOff}</strong>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead><tr><th>Tanggal</th><th>Masuk</th><th>Pulang</th></tr></thead>
+                        <tbody>`;
+            
+            data.slice(1).forEach(row => {
+                html += `<tr>
                     <td>${row[1] || "-"}</td>
-                    <td>${row[2] || "-"}</td>
+                    <td>${row[3] || "-"}</td>
+                    <td>${row[4] || "-"}</td>
                 </tr>`;
-            }
+            });
             
-            tableHtml += `</tbody></table></div>`;
-            document.getElementById("cpmModalBody").innerHTML = tableHtml;
-        } else {
-            alert("Gagal: " + res.message);
+            html += `</tbody></table></div>`;
+            document.getElementById("cpmModalBody").innerHTML = html;
         }
     });
 }
