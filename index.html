@@ -865,6 +865,77 @@ window.onload = function() {
         }
     });
 };
+function muatDataMonitorSaatRefresh() {
+    console.log("Memulai proses refresh data...");
+    let areaText = document.getElementById("displayAreaKacab").innerText.replace("Area: ", "");
+    
+    // PERBAIKAN: Jika sheetId hilang, jangan reload. 
+    // Tapi coba panggil login ulang atau beri notifikasi agar user tidak bingung.
+    if(typeof globalSheetId !== 'undefined' && globalSheetId) {
+        muatDataMonitor(areaText, globalSheetId);
+    } else {
+        // GANTI: Jangan reload, beri peringatan saja
+        alert("Sesi monitor kadaluarsa. Silakan log out dan login kembali.");
+    }
+}
+function muatDataMonitor(area, sheetId) {
+    console.log("Memulai request ke server...");
+    
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+            aksi: "getMonitorHariIni",
+            areaKacab: area,
+            sheetId: sheetId
+        })
+    })
+    .then(r => r.json())
+    .then(res => {
+        let tbody = document.getElementById("tabelMonitorBody");
+        tbody.innerHTML = "";
+
+        if (res && res.status === "success" && res.data) {
+            // Karena data dari server sudah dalam format per orang (sudah ada masuk & pulang), 
+            // kita tinggal menampilkannya langsung tanpa perlu pengelompokan rumit.
+// Ganti bagian di dalam res.data.forEach(...) dengan ini:
+res.data.forEach(item => {
+    let nama = item.nama || "-";
+    let jamMasuk = item.masuk || "-";
+    let jamPulang = item.pulang || "-";
+    
+    // Pastikan Anda menyesuaikan nama properti (fotoMasuk/fotoPulang) 
+    // dengan apa yang sebenarnya dikirim oleh Google Apps Script Anda
+    let linkFotoMasuk = item.fotoMasuk || item.foto || ""; 
+    let linkFotoPulang = item.fotoPulang || item.foto || ""; 
+
+    let btnMasuk = (jamMasuk !== "-") ? 
+        `<a href="${linkFotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+        `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+    
+    let btnPulang = (jamPulang !== "-") ? 
+        `<a href="${linkFotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+        `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+
+    tbody.innerHTML += `<tr>
+        <td><strong>${nama}</strong></td>
+        <td>${jamMasuk}</td>
+        <td>${jamPulang}</td>
+        <td>${btnMasuk}</td>
+        <td>${btnPulang}</td>
+    </tr>`;
+});
+        } else {
+            tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Data tidak ditemukan</td></tr>";
+        }
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        alert("Gagal memuat data.");
+    });
+}
+
 function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
     document.getElementById("cpmModalBody").innerHTML = "Memuat data...";
 
