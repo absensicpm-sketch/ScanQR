@@ -984,11 +984,19 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
             let headerTanggal = res.data.headerTanggal;
 
             let totalHadir = 0, totalOff = 0;
-            // Gunakan rowKaryawan.length untuk membaca seluruh kolom
-            for (let i = 2; i < rowKaryawan.length; i += 2) {
+            
+            // Hitung logika: Hadir = 1 hanya jika Masuk AND Pulang != "OFF" dan tidak kosong
+            for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i]) continue;
-                if (rowKaryawan[i] !== "OFF" && rowKaryawan[i] !== "") totalHadir++;
-                else if (rowKaryawan[i] === "OFF") totalOff++;
+                
+                let m = rowKaryawan[i];
+                let p = rowKaryawan[i+1];
+                
+                if (m === "OFF" || p === "OFF") {
+                    if (m === "OFF") totalOff++;
+                } else if (m && p) {
+                    totalHadir++;
+                }
             }
 
             let html = `
@@ -1008,29 +1016,22 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                         </thead>
                         <tbody>`;
             
-            for (let i = 2; i < rowKaryawan.length; i += 2) {
+            for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i]) continue;
 
-                // Konversi tanggal yang lebih aman untuk format Google Sheets
                 let d = new Date(headerTanggal[i]);
+                if (isNaN(d.getTime())) continue; // Lewati jika bukan tanggal valid
+
                 let tglDisplay = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
                 
-                let valMasuk = rowKaryawan[i];
-                let valPulang = rowKaryawan[i+1];
+                // Blok merah untuk hari Minggu
+                let isSunday = (d.getDay() === 0);
+                let rowStyle = isSunday ? 'style="background-color: #ffd6d6;"' : '';
                 
-                // Format Jam
-                let jamMasuk = (valMasuk instanceof Date) ? valMasuk.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) : valMasuk;
-                let jamPulang = (valPulang instanceof Date) ? valPulang.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) : valPulang;
-
-                // Cek hari Minggu (0 = Minggu)
-                // Pastikan d adalah valid date
-                let isSunday = (!isNaN(d.getTime()) && d.getDay() === 0);
-                let style = isSunday ? 'style="color: red; font-weight: bold;"' : '';
-                
-                html += `<tr ${style}>
+                html += `<tr ${rowStyle}>
                     <td>${tglDisplay}</td>
-                    <td>${jamMasuk}</td>
-                    <td>${jamPulang}</td>
+                    <td>${rowKaryawan[i]}</td>
+                    <td>${rowKaryawan[i+1]}</td>
                 </tr>`;
             }
             
