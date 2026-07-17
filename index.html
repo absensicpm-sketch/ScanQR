@@ -983,15 +983,10 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
             let rowKaryawan = res.data.barisKaryawan;
             let headerTanggal = res.data.headerTanggal;
 
-            // Tentukan batas kolom: Cari index kolom "KETERANGAN" atau "MASUK" pertama 
-            // Setelah tanggal terakhir. Berdasarkan gambar, data absensi berhenti sebelum kolom KETERANGAN.
-            // Kita batasi loop sampai kolom sebelum keterangan (indeks 50 atau sesuai kebutuhan)
-            let batasKolom = 50; 
-
             let totalHadir = 0, totalOff = 0;
-            // Hitung ringkasan hanya dari kolom tanggal (index 2 sampai batasKolom)
-            for (let i = 2; i < batasKolom; i += 2) {
-                if (headerTanggal[i] === "") continue; 
+            // Gunakan rowKaryawan.length untuk membaca seluruh kolom
+            for (let i = 2; i < rowKaryawan.length; i += 2) {
+                if (!headerTanggal[i]) continue;
                 if (rowKaryawan[i] !== "OFF" && rowKaryawan[i] !== "") totalHadir++;
                 else if (rowKaryawan[i] === "OFF") totalOff++;
             }
@@ -1013,21 +1008,23 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                         </thead>
                         <tbody>`;
             
-            // Loop data
-            for (let i = 2; i < batasKolom; i += 2) {
-                if (!headerTanggal[i]) continue; // Hentikan jika kolom tanggal kosong
+            for (let i = 2; i < rowKaryawan.length; i += 2) {
+                if (!headerTanggal[i]) continue;
 
+                // Konversi tanggal yang lebih aman untuk format Google Sheets
                 let d = new Date(headerTanggal[i]);
                 let tglDisplay = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
                 
                 let valMasuk = rowKaryawan[i];
                 let valPulang = rowKaryawan[i+1];
                 
+                // Format Jam
                 let jamMasuk = (valMasuk instanceof Date) ? valMasuk.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) : valMasuk;
                 let jamPulang = (valPulang instanceof Date) ? valPulang.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) : valPulang;
 
-                // Perbaikan warna: Cek hari Minggu menggunakan d.getDay()
-                let isSunday = (d.getDay() === 0);
+                // Cek hari Minggu (0 = Minggu)
+                // Pastikan d adalah valid date
+                let isSunday = (!isNaN(d.getTime()) && d.getDay() === 0);
                 let style = isSunday ? 'style="color: red; font-weight: bold;"' : '';
                 
                 html += `<tr ${style}>
