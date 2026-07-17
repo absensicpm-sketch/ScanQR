@@ -28,6 +28,22 @@
         /* Gaya Tambahan untuk Menu Pilihan */
         .btn-menu-pilihan { padding: 20px; border-radius: 15px; transition: all 0.3s ease; text-align: left; background-color: #fff; border: 2px solid #eee; }
         .btn-menu-pilihan:hover { border-color: #E30613; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+   /* Pastikan tabel tidak melebar keluar layar */
+.table-responsive {
+    width: 100%;
+    overflow-x: hidden; /* Mencegah scroll horizontal */
+}
+
+/* Membuat tabel mengecil menyesuaikan layar */
+.table-sm {
+    font-size: 0.85rem;
+}
+
+/* Memastikan kolom nama tidak terlalu lebar */
+.table th, .table td {
+    white-space: nowrap;
+    padding: 8px 4px !important;
+}
     </style>
 </head>
 <body>
@@ -66,6 +82,13 @@
         <p class="small mb-0">Monitor Absensi Hari Ini</p>
         <p id="tanggalHariIni" class="small fw-bold mb-0"></p>
     </div>
+    <div class="row text-center mb-2">
+    <div class="col-12">
+        <div class="card bg-success text-white p-2">
+            <strong>Total Hadir Hari Ini: <span id="totalHadirHariIni">0</span></strong>
+        </div>
+    </div>
+</div>
     
     <div class="table-responsive">
         <table class="table table-bordered table-striped">
@@ -924,6 +947,9 @@ function muatDataMonitor(area, sheetId) {
                     <td>${btnMasuk}</td>
                     <td>${btnPulang}</td>
                 </tr>`;
+                // Hitung berapa baris yang kolom "Masuk" nya tidak kosong atau bukan "-"
+let jumlahHadir = document.querySelectorAll('tbody tr').length; // Sesuaikan dengan logika loop Anda
+document.getElementById('totalHadirHariIni').innerText = jumlahHadir;
             });
         } else {
             tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Data tidak ditemukan</td></tr>";
@@ -985,7 +1011,13 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
 
             let totalMasuk = 0, totalPulang = 0, totalHadir = 0, totalOff = 0;
 
-            // 1. Hitung total (berhenti sebelum kolom KETERANGAN)
+            // Fungsi pembantu untuk mengambil jam:menit saja
+            const formatJam = (val) => {
+                if (!val || val === "OFF") return val;
+                return val.toString().slice(-5);
+            };
+
+            // 1. Hitung total
             for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i] || headerTanggal[i].toString().includes("KETERANGAN")) break;
                 
@@ -1021,7 +1053,7 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                         </thead>
                         <tbody>`;
             
-            // 3. Render Tabel (Berhenti sebelum kolom KETERANGAN)
+            // 3. Render Tabel dengan format Jam:Menit dan Highlight Hari Minggu
             for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i] || headerTanggal[i].toString().includes("KETERANGAN")) break;
 
@@ -1030,14 +1062,14 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
 
                 let tglDisplay = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
                 
-                // Deteksi hari Minggu (getUTCDay digunakan untuk konsistensi zona waktu)
+                // Deteksi hari Minggu (getUTCDay 0 = Minggu)
                 let isSunday = (d.getUTCDay() === 0);
                 let rowStyle = isSunday ? 'style="background-color: #ffcccc !important;"' : '';
                 
                 html += `<tr ${rowStyle}>
                     <td>${tglDisplay}</td>
-                    <td>${rowKaryawan[i] || '-'}</td>
-                    <td>${rowKaryawan[i+1] || '-'}</td>
+                    <td>${formatJam(rowKaryawan[i]) || '-'}</td>
+                    <td>${formatJam(rowKaryawan[i+1]) || '-'}</td>
                 </tr>`;
             }
             
@@ -1048,7 +1080,6 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
         }
     });
 }
-
 // Tambahkan fungsi ini di luar untuk menutup modal tanpa reload
 function closeModal() {
     var modalEl = document.getElementById('cpmModal');
