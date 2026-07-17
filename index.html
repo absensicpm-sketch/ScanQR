@@ -978,7 +978,6 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
         })
     })
     .then(r => r.json())
-// ... (bagian fetch tetap sama)
     .then(res => {
         if (res.status === "success") {
             let rowKaryawan = res.data.barisKaryawan;
@@ -986,21 +985,19 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
 
             let totalMasuk = 0, totalPulang = 0, totalHadir = 0, totalOff = 0;
 
+            // Loop dinamis hingga panjang headerTanggal
             for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i]) continue;
                 
                 let m = rowKaryawan[i];
                 let p = rowKaryawan[i+1];
 
-                // Cek status OFF (Jika salah satu OFF, maka hari itu dianggap OFF)
-                if (m === "OFF" || p === "OFF") {
+                if (m === "OFF") {
                     totalOff++;
-                } else if (m && p) {
-                    // Masuk dan Pulang dianggap ada jika bukan kosong
-                    totalMasuk++;
-                    totalPulang++;
-                    // Hadir jika keduanya lengkap
-                    totalHadir++;
+                } else {
+                    if (m && m !== "OFF") totalMasuk++;
+                    if (p && p !== "OFF") totalPulang++;
+                    if (m && m !== "OFF" && p && p !== "OFF") totalHadir++;
                 }
             }
 
@@ -1024,22 +1021,22 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
             for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i]) continue;
 
+                // Memastikan tanggal valid
                 let d = new Date(headerTanggal[i]);
+                if (isNaN(d.getTime())) continue;
+
                 let tglDisplay = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
                 
-                // Deteksi hari Minggu (0 = Minggu)
-                let isSunday = (d.getDay() === 0);
-                
-                // Jika ingin warna merah, tambahkan class atau inline style
+                // Deteksi hari Minggu (0) dengan memastikan zona waktu konsisten
+                let isSunday = (d.getUTCDay() === 0);
                 let rowStyle = isSunday ? 'style="background-color: #ffcccc !important;"' : '';
                 
                 html += `<tr ${rowStyle}>
                     <td>${tglDisplay}</td>
-                    <td>${rowKaryawan[i]}</td>
-                    <td>${rowKaryawan[i+1]}</td>
+                    <td>${rowKaryawan[i] || '-'}</td>
+                    <td>${rowKaryawan[i+1] || '-'}</td>
                 </tr>`;
             }
-            // ... (lanjutan modal)
             
             html += `</tbody></table></div>
                      <button class="btn btn-secondary w-100 mt-2" onclick="closeModal()">Kembali</button>`;
