@@ -865,19 +865,6 @@ window.onload = function() {
         }
     });
 };
-function muatDataMonitorSaatRefresh() {
-    console.log("Memulai proses refresh data...");
-    let areaText = document.getElementById("displayAreaKacab").innerText.replace("Area: ", "");
-    
-    // PERBAIKAN: Jika sheetId hilang, jangan reload. 
-    // Tapi coba panggil login ulang atau beri notifikasi agar user tidak bingung.
-    if(typeof globalSheetId !== 'undefined' && globalSheetId) {
-        muatDataMonitor(areaText, globalSheetId);
-    } else {
-        // GANTI: Jangan reload, beri peringatan saja
-        alert("Sesi monitor kadaluarsa. Silakan log out dan login kembali.");
-    }
-}
 function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
     document.getElementById("cpmModalBody").innerHTML = "Memuat data...";
 
@@ -900,10 +887,12 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
 
             let totalMasuk = 0, totalPulang = 0, totalHadir = 0, totalOff = 0;
 
-            // Loop dinamis hingga panjang headerTanggal
-            for (let i = 2; i < headerTanggal.length; i += 2) {
-                if (!headerTanggal[i]) continue;
-                
+            // 1. Hitung total (Hanya sampai kolom sebelum KETERANGAN, misal index 32)
+            // Sesuaikan angka 32 dengan jumlah kolom tanggal Anda (15 hari x 2 kolom = 30 + 2 offset)
+            for (let i = 2; i < 32; i += 2) {
+                let d = new Date(headerTanggal[i]);
+                if (isNaN(d.getTime())) continue; // Lewati jika bukan tanggal
+
                 let m = rowKaryawan[i];
                 let p = rowKaryawan[i+1];
 
@@ -916,6 +905,7 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                 }
             }
 
+            // 2. Render HTML
             let html = `
                 <div class="p-2 mb-2 text-white text-center" style="background-color: #dc3545; border-radius: 5px;">
                     <h5>History Absensi ${namaKaryawan} - ${namaBulan}</h5>
@@ -933,18 +923,14 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                         </thead>
                         <tbody>`;
             
-            for (let i = 2; i < headerTanggal.length; i += 2) {
-                if (!headerTanggal[i]) continue;
-
-                // Memastikan tanggal valid
+            // 3. Render Tabel (Loop sama dengan perhitungan di atas)
+            for (let i = 2; i < 32; i += 2) {
                 let d = new Date(headerTanggal[i]);
                 if (isNaN(d.getTime())) continue;
 
                 let tglDisplay = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
-                
-                // Deteksi hari Minggu (0) dengan memastikan zona waktu konsisten
-                let isSunday = (d.getUTCDay() === 0);
-                let rowStyle = isSunday ? 'style="background-color: #ffcccc !important;"' : '';
+                let isSunday = (d.getDay() === 0);
+                let rowStyle = isSunday ? 'style="background-color: #ffcccc;"' : '';
                 
                 html += `<tr ${rowStyle}>
                     <td>${tglDisplay}</td>
