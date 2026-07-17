@@ -983,19 +983,25 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
             let rowKaryawan = res.data.barisKaryawan;
             let headerTanggal = res.data.headerTanggal;
 
-            let totalHadir = 0, totalOff = 0;
-            
-            // Hitung logika: Hadir = 1 hanya jika Masuk AND Pulang != "OFF" dan tidak kosong
+            let totalMasuk = 0, totalPulang = 0, totalHadir = 0, totalOff = 0;
+
+            // Logika perhitungan yang lebih presisi
             for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i]) continue;
                 
                 let m = rowKaryawan[i];
                 let p = rowKaryawan[i+1];
-                
-                if (m === "OFF" || p === "OFF") {
-                    if (m === "OFF") totalOff++;
-                } else if (m && p) {
-                    totalHadir++;
+
+                // Cek status OFF
+                if (m === "OFF") {
+                    totalOff++;
+                } else {
+                    // Masuk dan Pulang dihitung hanya jika ada datanya
+                    if (m && m !== "OFF") totalMasuk++;
+                    if (p && p !== "OFF") totalPulang++;
+                    
+                    // Hadir dihitung jika ada keduanya
+                    if (m && m !== "OFF" && p && p !== "OFF") totalHadir++;
                 }
             }
 
@@ -1004,8 +1010,8 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                     <h5>History Absensi ${namaKaryawan} - ${namaBulan}</h5>
                 </div>
                 <div class="row text-center mb-3">
-                    <div class="col-3"><div class="border p-1 small"><strong>Masuk</strong><br>${totalHadir}</div></div>
-                    <div class="col-3"><div class="border p-1 small"><strong>Pulang</strong><br>${totalHadir}</div></div>
+                    <div class="col-3"><div class="border p-1 small"><strong>Masuk</strong><br>${totalMasuk}</div></div>
+                    <div class="col-3"><div class="border p-1 small"><strong>Pulang</strong><br>${totalPulang}</div></div>
                     <div class="col-3"><div class="border p-1 small"><strong>Hadir</strong><br>${totalHadir}</div></div>
                     <div class="col-3"><div class="border p-1 small"><strong>OFF</strong><br>${totalOff}</div></div>
                 </div>
@@ -1020,13 +1026,13 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                 if (!headerTanggal[i]) continue;
 
                 let d = new Date(headerTanggal[i]);
-                if (isNaN(d.getTime())) continue; // Lewati jika bukan tanggal valid
+                if (isNaN(d.getTime())) continue;
 
                 let tglDisplay = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
                 
-                // Blok merah untuk hari Minggu
+                // Pastikan cek hari Minggu menggunakan d.getDay() === 0
                 let isSunday = (d.getDay() === 0);
-                let rowStyle = isSunday ? 'style="background-color: #ffd6d6;"' : '';
+                let rowStyle = isSunday ? 'style="background-color: #f8d7da;"' : '';
                 
                 html += `<tr ${rowStyle}>
                     <td>${tglDisplay}</td>
