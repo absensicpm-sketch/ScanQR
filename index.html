@@ -8,43 +8,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f4f6f9; }
-        body { overscroll-behavior-y: contain; /* Mencegah pull-to-refresh mobile */}
-        .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .hidden-section { display: none; }
-        .camera-container { position: relative; width: 100%; max-width: 340px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 4px solid #fff; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-        #webcam-preview { width: 100%; transform: scaleX(-1); background-color: #222; height: 260px; object-fit: cover; }
-        .camera-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 20px solid rgba(0,0,0,0.4); box-sizing: border-box; pointer-events: none; }
-        .camera-grid { position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 2px dashed rgba(255,255,255,0.6); pointer-events: none; }
-        .btn-status { padding: 15px; font-size: 1.2rem; font-weight: 700; border-radius: 10px; }
-        .logo-cpm { width: 140px; max-width: 100%; height: auto; }
-        .box-login-merah { background-color: #E30613 !important; color: #FFFFFF !important; }
-        .box-login-merah .form-label { color: #FFFFFF !important; }
-        .btn-masuk-kuning { background-color: #FFC107 !important; color: #FFFFFF !important; border: none; transition: all 0.3s ease; }
-        .btn-masuk-kuning:hover { background-color: #E0A800 !important; color: #FFFFFF !important; transform: scale(1.02); }
-        #qr-reader, #toilet-qr-reader { width: 100%; max-width: 340px; margin: 0 auto; border: none !important; }
-        
-        /* Gaya Tambahan untuk Menu Pilihan */
-        .btn-menu-pilihan { padding: 20px; border-radius: 15px; transition: all 0.3s ease; text-align: left; background-color: #fff; border: 2px solid #eee; }
-        .btn-menu-pilihan:hover { border-color: #E30613; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-   /* Pastikan tabel tidak melebar keluar layar */
-.table-responsive {
-    width: 100%;
-    overflow-x: hidden; /* Mencegah scroll horizontal */
-}
+<style>
+    body { font-family: 'Poppins', sans-serif; background-color: #f4f6f9; }
+    body { overscroll-behavior-y: contain; /* Mencegah pull-to-refresh mobile */}
+    .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .hidden-section { display: none; }
+    .camera-container { position: relative; width: 100%; max-width: 340px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 4px solid #fff; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    #webcam-preview { width: 100%; transform: scaleX(-1); background-color: #222; height: 260px; object-fit: cover; }
+    .camera-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 20px solid rgba(0,0,0,0.4); box-sizing: border-box; pointer-events: none; }
+    .camera-grid { position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 2px dashed rgba(255,255,255,0.6); pointer-events: none; }
+    .btn-status { padding: 15px; font-size: 1.2rem; font-weight: 700; border-radius: 10px; }
+    .logo-cpm { width: 140px; max-width: 100%; height: auto; }
+    .box-login-merah { background-color: #E30613 !important; color: #FFFFFF !important; }
+    .box-login-merah .form-label { color: #FFFFFF !important; }
+    .btn-masuk-kuning { background-color: #FFC107 !important; color: #FFFFFF !important; border: none; transition: all 0.3s ease; }
+    .btn-masuk-kuning:hover { background-color: #E0A800 !important; color: #FFFFFF !important; transform: scale(1.02); }
+    #qr-reader, #toilet-qr-reader { width: 100%; max-width: 340px; margin: 0 auto; border: none !important; }
+    
+    /* Gaya Tambahan untuk Menu Pilihan */
+    .btn-menu-pilihan { padding: 20px; border-radius: 15px; transition: all 0.3s ease; text-align: left; background-color: #fff; border: 2px solid #eee; }
+    .btn-menu-pilihan:hover { border-color: #E30613; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    
+    /* PERBAIKAN: Mengizinkan tabel digeser ke kanan di layar kecil */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto; /* Ubah dari hidden menjadi auto agar bisa di-scroll */
+        -webkit-overflow-scrolling: touch; /* Membuat scroll lebih mulus di HP */
+    }
 
-/* Membuat tabel mengecil menyesuaikan layar */
-.table-sm {
-    font-size: 0.85rem;
-}
+    /* Membuat tabel mengecil menyesuaikan layar */
+    .table-sm {
+        font-size: 0.85rem;
+    }
 
-/* Memastikan kolom nama tidak terlalu lebar */
-.table th, .table td {
-    white-space: nowrap;
-    padding: 8px 4px !important;
-}
-    </style>
+    /* Memastikan kolom nama tidak terlalu lebar dan teks tidak turun ke bawah */
+    .table th, .table td {
+        white-space: nowrap;
+        padding: 8px 4px !important;
+        vertical-align: middle;
+    }
+</style>
 </head>
 <body>
 
