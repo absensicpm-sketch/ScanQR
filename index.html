@@ -985,22 +985,25 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
 
             let totalMasuk = 0, totalPulang = 0, totalHadir = 0, totalOff = 0;
 
-            // Loop dinamis hingga panjang headerTanggal
+            // 1. Hitung total (berhenti sebelum kolom KETERANGAN)
             for (let i = 2; i < headerTanggal.length; i += 2) {
-                if (!headerTanggal[i]) continue;
+                if (!headerTanggal[i] || headerTanggal[i].toString().includes("KETERANGAN")) break;
                 
                 let m = rowKaryawan[i];
                 let p = rowKaryawan[i+1];
 
                 if (m === "OFF") {
                     totalOff++;
-                } else {
-                    if (m && m !== "OFF") totalMasuk++;
-                    if (p && p !== "OFF") totalPulang++;
-                    if (m && m !== "OFF" && p && p !== "OFF") totalHadir++;
+                } else if (m) {
+                    totalMasuk++;
+                    if (p && p !== "OFF") {
+                        totalPulang++;
+                        totalHadir++;
+                    }
                 }
             }
 
+            // 2. Render HTML
             let html = `
                 <div class="p-2 mb-2 text-white text-center" style="background-color: #dc3545; border-radius: 5px;">
                     <h5>History Absensi ${namaKaryawan} - ${namaBulan}</h5>
@@ -1018,16 +1021,16 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                         </thead>
                         <tbody>`;
             
+            // 3. Render Tabel (Berhenti sebelum kolom KETERANGAN)
             for (let i = 2; i < headerTanggal.length; i += 2) {
-                if (!headerTanggal[i]) continue;
+                if (!headerTanggal[i] || headerTanggal[i].toString().includes("KETERANGAN")) break;
 
-                // Memastikan tanggal valid
                 let d = new Date(headerTanggal[i]);
                 if (isNaN(d.getTime())) continue;
 
                 let tglDisplay = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
                 
-                // Deteksi hari Minggu (0) dengan memastikan zona waktu konsisten
+                // Deteksi hari Minggu (getUTCDay digunakan untuk konsistensi zona waktu)
                 let isSunday = (d.getUTCDay() === 0);
                 let rowStyle = isSunday ? 'style="background-color: #ffcccc !important;"' : '';
                 
