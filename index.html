@@ -902,8 +902,6 @@ function muatDataMonitorSaatRefresh() {
     }
 }
 function muatDataMonitor(area, sheetId) {
-    console.log("Memulai request ke server...");
-    
     fetch(WEB_APP_URL, {
         method: "POST",
         mode: "cors",
@@ -936,7 +934,6 @@ function muatDataMonitor(area, sheetId) {
                     `<a href="${linkFotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
                     `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
 
-                // Tombol Detail diletakkan di bawah nama (menggunakan <br>)
                 tbody.innerHTML += `<tr>
                     <td>
                         <strong>${nama}</strong><br>
@@ -947,17 +944,19 @@ function muatDataMonitor(area, sheetId) {
                     <td>${btnMasuk}</td>
                     <td>${btnPulang}</td>
                 </tr>`;
-                // Hitung berapa baris yang kolom "Masuk" nya tidak kosong atau bukan "-"
-let jumlahHadir = document.querySelectorAll('tbody tr').length; // Sesuaikan dengan logika loop Anda
-document.getElementById('totalHadirHariIni').innerText = jumlahHadir;
             });
+
+            // PERBAIKAN: Letakkan di sini (setelah loop selesai)
+            let jumlahHadir = res.data.length; 
+            document.getElementById('totalHadirHariIni').innerText = jumlahHadir;
+
         } else {
             tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Data tidak ditemukan</td></tr>";
+            document.getElementById('totalHadirHariIni').innerText = "0";
         }
     })
     .catch(err => {
         console.error("Error:", err);
-        alert("Gagal memuat data.");
     });
 }
 function pilihBulanUntukKaryawan(namaKaryawan) {
