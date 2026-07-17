@@ -878,6 +878,91 @@ function muatDataMonitorSaatRefresh() {
         alert("Sesi monitor kadaluarsa. Silakan log out dan login kembali.");
     }
 }
+function muatDataMonitor(area, sheetId) {
+    console.log("Memulai request ke server...");
+    
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+            aksi: "getMonitorHariIni",
+            areaKacab: area,
+            sheetId: sheetId
+        })
+    })
+    .then(r => r.json())
+    .then(res => {
+        let tbody = document.getElementById("tabelMonitorBody");
+        tbody.innerHTML = "";
+
+        if (res && res.status === "success" && res.data) {
+            res.data.forEach(item => {
+                let nama = item.nama || "-";
+                let jamMasuk = item.masuk || "-";
+                let jamPulang = item.pulang || "-";
+                
+                let linkFotoMasuk = item.fotoMasuk || item.foto || ""; 
+                let linkFotoPulang = item.fotoPulang || item.foto || ""; 
+
+                let btnMasuk = (jamMasuk !== "-") ? 
+                    `<a href="${linkFotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+                    `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+                
+                let btnPulang = (jamPulang !== "-") ? 
+                    `<a href="${linkFotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
+                    `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
+
+                // Tombol Detail diletakkan di bawah nama (menggunakan <br>)
+                tbody.innerHTML += `<tr>
+                    <td>
+                        <strong>${nama}</strong><br>
+                        <button class="btn btn-sm btn-outline-primary mt-1" onclick="pilihBulanUntukKaryawan('${nama}')">Detail</button>
+                    </td>
+                    <td>${jamMasuk}</td>
+                    <td>${jamPulang}</td>
+                    <td>${btnMasuk}</td>
+                    <td>${btnPulang}</td>
+                </tr>`;
+            });
+        } else {
+            tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Data tidak ditemukan</td></tr>";
+        }
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        alert("Gagal memuat data.");
+    });
+}
+function pilihBulanUntukKaryawan(namaKaryawan) {
+    document.getElementById("cpmModalTitle").innerHTML = "Pilih Periode";
+    document.getElementById("cpmModalBody").innerHTML = "Memuat daftar bulan...";
+    var myModal = new bootstrap.Modal(document.getElementById('cpmModal'));
+    myModal.show();
+
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+            aksi: "getDaftarBulan",
+            sheetId: globalSheetId
+        })
+    })
+    .then(r => r.json())
+    .then(response => {
+        if(response.status === "success") {
+            let html = `<p>Pilih bulan untuk <b>${namaKaryawan}</b>:</p><div class="d-grid gap-2">`;
+            response.data.forEach(bulan => {
+                // SINI PERUBAHANNYA: Memanggil fungsi tampilkanDataAbsensi
+                html += `<button class="btn btn-outline-danger mb-1" onclick="tampilkanDataAbsensi('${namaKaryawan}', '${bulan}')">${bulan}</button>`;
+            });
+            html += `</div>`;
+            document.getElementById("cpmModalBody").innerHTML = html;
+        }
+    })
+    .catch(err => console.error("Error:", err));
+}
 function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
     document.getElementById("cpmModalBody").innerHTML = "Memuat data...";
 
@@ -893,6 +978,7 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
         })
     })
     .then(r => r.json())
+// ... (bagian fetch tetap sama)
     .then(res => {
         if (res.status === "success") {
             let rowKaryawan = res.data.barisKaryawan;
@@ -900,19 +986,21 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
 
             let totalMasuk = 0, totalPulang = 0, totalHadir = 0, totalOff = 0;
 
-            // Loop dinamis hingga panjang headerTanggal
             for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i]) continue;
                 
                 let m = rowKaryawan[i];
                 let p = rowKaryawan[i+1];
 
-                if (m === "OFF") {
+                // Cek status OFF (Jika salah satu OFF, maka hari itu dianggap OFF)
+                if (m === "OFF" || p === "OFF") {
                     totalOff++;
-                } else {
-                    if (m && m !== "OFF") totalMasuk++;
-                    if (p && p !== "OFF") totalPulang++;
-                    if (m && m !== "OFF" && p && p !== "OFF") totalHadir++;
+                } else if (m && p) {
+                    // Masuk dan Pulang dianggap ada jika bukan kosong
+                    totalMasuk++;
+                    totalPulang++;
+                    // Hadir jika keduanya lengkap
+                    totalHadir++;
                 }
             }
 
@@ -936,22 +1024,22 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
             for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i]) continue;
 
-                // Memastikan tanggal valid
                 let d = new Date(headerTanggal[i]);
-                if (isNaN(d.getTime())) continue;
-
                 let tglDisplay = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
                 
-                // Deteksi hari Minggu (0) dengan memastikan zona waktu konsisten
-                let isSunday = (d.getUTCDay() === 0);
+                // Deteksi hari Minggu (0 = Minggu)
+                let isSunday = (d.getDay() === 0);
+                
+                // Jika ingin warna merah, tambahkan class atau inline style
                 let rowStyle = isSunday ? 'style="background-color: #ffcccc !important;"' : '';
                 
                 html += `<tr ${rowStyle}>
                     <td>${tglDisplay}</td>
-                    <td>${rowKaryawan[i] || '-'}</td>
-                    <td>${rowKaryawan[i+1] || '-'}</td>
+                    <td>${rowKaryawan[i]}</td>
+                    <td>${rowKaryawan[i+1]}</td>
                 </tr>`;
             }
+            // ... (lanjutan modal)
             
             html += `</tbody></table></div>
                      <button class="btn btn-secondary w-100 mt-2" onclick="closeModal()">Kembali</button>`;
