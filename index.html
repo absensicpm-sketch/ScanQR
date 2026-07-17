@@ -980,22 +980,55 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
     .then(r => r.json())
     .then(res => {
         if (res.status === "success") {
-            let row = res.data; // Ini adalah satu baris data karyawan tersebut
-            let html = `<h5 class="text-center">History ${namaKaryawan} - ${namaBulan}</h5>
-                        <table class="table table-sm table-bordered">
-                        <thead><tr><th>Tanggal</th><th>Masuk</th><th>Pulang</th></tr></thead><tbody>`;
+            let row = res.data;
+            let totalHadir = 0, totalOff = 0;
             
-            // Loop kolom mulai index 2 (Kolom C) sampai habis
-            // i += 2 karena setiap tanggal terdiri dari 2 kolom (Masuk & Pulang)
+            // Perhitungan Ringkasan
             for (let i = 2; i < row.length; i += 2) {
-                let tanggal = "Tgl " + ((i-2)/2 + 1); // Penanda tanggal
-                let masuk = row[i] || "-";
-                let pulang = row[i+1] || "-";
+                if (row[i] !== "OFF") totalHadir++;
+                else totalOff++;
+            }
+
+            let html = `
+                <div class="p-2 mb-2 text-white text-center" style="background-color: #dc3545; border-radius: 5px;">
+                    <h5>History Absensi ${namaKaryawan} - ${namaBulan}</h5>
+                </div>
                 
-                html += `<tr><td>${tanggal}</td><td>${masuk}</td><td>${pulang}</td></tr>`;
+                <div class="row text-center mb-3">
+                    <div class="col-3"><div class="border p-1"><strong>Masuk</strong><br>${totalHadir}</div></div>
+                    <div class="col-3"><div class="border p-1"><strong>Pulang</strong><br>${totalHadir}</div></div>
+                    <div class="col-3"><div class="border p-1"><strong>Hadir</strong><br>${totalHadir}</div></div>
+                    <div class="col-3"><div class="border p-1"><strong>OFF</strong><br>${totalOff}</div></div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead style="background-color: #f8d7da;">
+                            <tr><th>Tanggal</th><th>Masuk</th><th>Pulang</th></tr>
+                        </thead>
+                        <tbody>`;
+            
+            for (let i = 2; i < row.length; i += 2) {
+                let fullDate = new Date(row[i] || row[i+1]); // Mengambil tanggal dari data
+                let dayName = fullDate.getDay(); // 0 = Minggu
+                let isSunday = (dayName === 0);
+                
+                let tglDisplay = (row[i] !== "OFF" || row[i+1] !== "OFF") ? new Date(row[i] || row[i+1]).toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'}) : "-";
+                let jamMasuk = row[i] !== "OFF" ? new Date(row[i]).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) : "OFF";
+                let jamPulang = row[i+1] !== "OFF" ? new Date(row[i+1]).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) : "OFF";
+                
+                let rowColor = isSunday ? 'style="color: red; font-weight: bold;"' : '';
+                
+                html += `<tr ${rowColor}>
+                    <td>${tglDisplay}</td>
+                    <td>${jamMasuk}</td>
+                    <td>${jamPulang}</td>
+                </tr>`;
             }
             
-            html += `</tbody></table>`;
+            html += `</tbody></table></div>
+                     <button class="btn btn-secondary w-100 mt-2" onclick="location.reload()">Kembali</button>`;
+            
             document.getElementById("cpmModalBody").innerHTML = html;
         }
     });
