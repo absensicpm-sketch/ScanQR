@@ -348,11 +348,16 @@ function prosesLogin() {
     const btn = document.getElementById("btnLogin");
     const alertBox = document.getElementById("loginAlert");
 
-    if (!user || !pass) { alert("Username dan Password wajib diisi!"); return; }
+    if (!user || !pass) {
+        alert("Username dan Password wajib diisi!");
+        return;
+    }
 
+    // UI Feedback saat memproses
     btn.disabled = true;
     btn.innerText = "Memproses...";
-    
+    alertBox.classList.add("hidden-section"); // Menggunakan class hidden-section agar konsisten
+
     fetch(WEB_APP_URL, {
         method: "POST",
         mode: "cors",
@@ -365,32 +370,61 @@ function prosesLogin() {
         btn.innerText = "Masuk Aplikasi";
         
         if (res.status === "success") {
+            // Logika Simpan Password
             if (ingatSaya) {
                 localStorage.setItem("cpm_save_" + user, JSON.stringify({ password: pass }));
                 localStorage.setItem("cpm_last_user", user); 
+            } else {
+                localStorage.removeItem("cpm_save_" + user);
             }
-            
+
+            // Sembunyikan form login
             document.getElementById("loginSection").classList.add("hidden-section");
 
+            // Routing Berdasarkan Role
             if (res.role === "kacab") {
                 document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
                 document.getElementById("displayAreaKacab").innerText = "Area: " + (res.area || "Tanpa Area");
-                document.getElementById("tanggalHariIni").innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById("tanggalHariIni").innerText = new Date().toLocaleDateString('id-ID', options);
                 
                 globalSheetId = res.sheetId; 
-                muatDataMonitor(res.area, globalSheetId);
-            } else if (res.role === "superadmin") {
+                if (typeof muatDataMonitor === 'function') {
+                    muatDataMonitor(res.area, globalSheetId);
+                }
+            } 
+            else if (res.role === "superadmin") {
                 document.getElementById("dashboardPusatSection").classList.remove("hidden-section"); 
-                muatDashboardPusat(); 
-            } else if (res.role === "karyawan") {
+                if (typeof muatDashboardPusat === 'function') {
+                    muatDashboardPusat(); 
+                }
+            }
+            else if (res.role === "karyawan") {
                 daftarCabang = res.cabangList;
-                document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
-                if (typeof mulaiTrackingGPS === 'function') mulaiTrackingGPS();
+                const menu = document.getElementById("dashboardMenuSection");
+                if (menu) {
+                    menu.classList.remove("hidden-section");
+                }
+                if (typeof mulaiTrackingGPS === 'function') {
+                    mulaiTrackingGPS();
+                }
+            } 
+            else {
+                alert("Role tidak dikenali: " + res.role);
+                document.getElementById("loginSection").classList.remove("hidden-section");
             }
         } else {
             alertBox.innerText = res.message;
-            alertBox.classList.remove("d-none");
+            alertBox.classList.remove("hidden-section"); // Konsisten dengan class CSS
         }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerText = "Masuk Aplikasi";
+        alertBox.innerText = "Error koneksi: " + err.message;
+        alertBox.classList.remove("hidden-section");
+        console.error("Error Fetch:", err);
     });
 }
 // ...
