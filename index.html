@@ -54,6 +54,10 @@
 }
 .gap-2 { gap: 10px; }
 .flex-fill { flex: 1; }
+    /* Kode perbaikan untuk warna hari Minggu */
+.sunday-row {
+    background-color: #ffcccc !important;
+}
 </style>
 </head>
 <body>
@@ -998,13 +1002,11 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
 
             let totalMasuk = 0, totalPulang = 0, totalHadir = 0, totalOff = 0;
 
-            // Fungsi pembantu untuk mengambil jam:menit saja
             const formatJam = (val) => {
                 if (!val || val === "OFF") return val;
                 return val.toString().slice(-5);
             };
 
-            // 1. Hitung total
             for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i] || headerTanggal[i].toString().includes("KETERANGAN")) break;
                 
@@ -1022,7 +1024,6 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                 }
             }
 
-            // 2. Render HTML
             let html = `
                 <div class="p-2 mb-2 text-white text-center" style="background-color: #dc3545; border-radius: 5px;">
                     <h5>History Absensi ${namaKaryawan} - ${namaBulan}</h5>
@@ -1035,12 +1036,12 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                 </div>
                 <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
                     <table class="table table-sm table-bordered">
-                        <thead style="background-color: #f8d7da; position: sticky; top: 0;">
+                        <thead style="background-color: #f8d7da; position: sticky; top: 0; z-index: 10;">
                             <tr><th>Tanggal</th><th>Masuk</th><th>Pulang</th></tr>
                         </thead>
                         <tbody>`;
             
-            // 3. Render Tabel dengan format Jam:Menit dan Highlight Hari Minggu
+            // Loop render tabel dengan class 'sunday-row'
             for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i] || headerTanggal[i].toString().includes("KETERANGAN")) break;
 
@@ -1049,11 +1050,11 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
 
                 let tglDisplay = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
                 
-                // Deteksi hari Minggu (getUTCDay 0 = Minggu)
+                // Deteksi hari Minggu (getUTCDay 0 = Minggu) menggunakan class, bukan style inline
                 let isSunday = (d.getUTCDay() === 0);
-                let rowStyle = isSunday ? 'style="background-color: #ffcccc !important;"' : '';
+                let rowClass = isSunday ? 'class="sunday-row"' : '';
                 
-                html += `<tr ${rowStyle}>
+                html += `<tr ${rowClass}>
                     <td>${tglDisplay}</td>
                     <td>${formatJam(rowKaryawan[i]) || '-'}</td>
                     <td>${formatJam(rowKaryawan[i+1]) || '-'}</td>
