@@ -1113,7 +1113,6 @@ function muatDashboardPusat() {
     const display = document.getElementById('displayDataPusat');
     display.innerHTML = '<div class="text-center">Memuat data dari semua cabang...</div>';
 
-    // Menggunakan fetch untuk mengambil data dari Google Apps Script
     fetch(WEB_APP_URL + "?action=getDashboardAdmin", { 
         method: 'GET' 
     })
@@ -1155,6 +1154,10 @@ function muatDashboardPusat() {
     });
 }
 
+function bukaDashboardCabang(cabangId) {
+    const targetUrl = WEB_APP_URL + "?view=" + cabangId;
+    window.open(targetUrl, '_blank');
+}
 // Fungsi pendukung untuk membuka dashboard cabang di tab baru
 function bukaDashboardCabang(cabangId) {
     // Membuka URL aplikasi dengan parameter view agar sistem tahu cabang mana yang dibuka
