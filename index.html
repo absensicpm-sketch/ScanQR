@@ -1111,53 +1111,42 @@ function closeModal() {
 
 function muatDashboardPusat() {
     const display = document.getElementById('displayDataPusat');
-    
-    // Cek apakah display ada sebelum memanipulasinya
-    if (!display) {
-        console.error("Elemen 'displayDataPusat' tidak ditemukan di HTML.");
-        return;
-    }
-
     display.innerHTML = '<div class="text-center">Memuat data dari semua cabang...</div>';
-    
-    // Pengecekan keamanan: Apakah ini berjalan di dalam Google Apps Script?
-    if (typeof google !== 'undefined' && typeof google.script !== 'undefined') {
-        google.script.run
-            .withSuccessHandler(function(res) {
-                if (res && res.status === "success") {
-                    let html = `
-                        <table class="table table-bordered table-striped">
-                            <thead class="table-danger">
-                                <tr>
-                                    <th>Nama Cabang</th>
-                                    <th>Hadir Hari Ini</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
-                    
-                    res.data.forEach(function(cabang) {
-                        html += `<tr>
-                                    <td>${cabang.nama}</td>
-                                    <td class="text-center"><b>${cabang.hadir}</b></td>
-                                 </tr>`;
-                    });
-                    
-                    html += `</tbody></table>`;
-                    display.innerHTML = html;
-                } else {
-                    display.innerHTML = '<div class="alert alert-warning">Gagal memuat data: ' + (res ? res.message : "Data tidak valid") + '</div>';
-                }
-            })
-            .withFailureHandler(function(err) {
-                console.error("Error dari server:", err);
-                display.innerHTML = '<div class="alert alert-danger">Error sistem: Gagal menghubungi server pusat.</div>';
-            })
-            .getDashboardAdmin();
-    } else {
-        // Jika kode dijalankan di luar lingkungan Apps Script (misal: buka file .html langsung di browser)
-        console.error("Fungsi google.script.run tidak tersedia. Pastikan menjalankan melalui Web App URL.");
-        display.innerHTML = '<div class="alert alert-danger">Aplikasi tidak terhubung ke server Google. Pastikan membuka via URL Deployment yang benar.</div>';
-    }
+
+    // Menggunakan fetch karena file ada di GitHub, bukan di Google Apps Script
+    fetch(WEB_APP_URL + "?action=getDashboardAdmin", { 
+        method: 'GET' 
+    })
+    .then(response => response.json())
+    .then(res => {
+        if (res.status === "success") {
+            let html = `
+                <table class="table table-bordered table-striped">
+                    <thead class="table-danger">
+                        <tr>
+                            <th>Nama Cabang</th>
+                            <th>Hadir Hari Ini</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
+            res.data.forEach(function(cabang) {
+                html += `<tr>
+                            <td>${cabang.nama}</td>
+                            <td class="text-center"><b>${cabang.hadir}</b></td>
+                         </tr>`;
+            });
+            
+            html += `</tbody></table>`;
+            display.innerHTML = html;
+        } else {
+            display.innerHTML = "Gagal memuat data: " + res.message;
+        }
+    })
+    .catch(err => {
+        console.error("Error Fetch:", err);
+        display.innerHTML = "Error koneksi ke server.";
+    });
 }
 </script>
 </body>
