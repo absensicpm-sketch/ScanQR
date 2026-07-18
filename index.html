@@ -1155,42 +1155,30 @@ function muatDashboardPusat() {
     script.onload = function() { script.remove(); };
 }
 
-// Ganti fungsi bukaDashboardCabang dengan ini
+
+ * Fungsi untuk membuka dashboard cabang di halaman yang sama
+ * Tanpa membuka tab baru, tanpa reload, langsung memuat data.
+ */
 function bukaDashboardCabang(cabangId) {
-    // 1. Sembunyikan bagian Monitoring Pusat
-    document.getElementById("dashboardPusatSection").style.display = "none";
-    
-    // 2. Tampilkan bagian Dashboard Kacab
-    document.getElementById("dashboardKacabSection").style.display = "block";
-    
+    console.log("Membuka dashboard untuk cabang:", cabangId);
+
+    // 1. Sembunyikan bagian Monitoring Pusat (Dashboard Admin)
+    const pusatSection = document.getElementById("dashboardPusatSection");
+    if (pusatSection) pusatSection.style.display = "none";
+
+    // 2. Tampilkan bagian Dashboard Cabang (Dashboard Kacab)
+    const kacabSection = document.getElementById("dashboardKacabSection");
+    if (kacabSection) kacabSection.style.display = "block";
+
     // 3. Panggil fungsi yang sudah ada untuk memuat data cabang tersebut
-    // Saya asumsikan nama fungsi Anda adalah muatDataMonitor (sesuaikan jika berbeda)
+    // Pastikan fungsi muatDataMonitor(id) memang ada di script Anda
     if (typeof muatDataMonitor === 'function') {
-        muatDataMonitor(cabangId);
+        muatDataMonitor(cabangId); 
     } else {
-        console.error("Fungsi muatDataMonitor tidak ditemukan");
+        console.error("Fungsi muatDataMonitor tidak ditemukan di script Anda.");
+        alert("Fungsi pemuatan data cabang tidak ditemukan.");
     }
 }
-// Fungsi pendukung untuk membuka dashboard cabang di tab baru
-function bukaDashboardCabang(cabangId) {
-    // Membuka URL aplikasi dengan parameter view agar sistem tahu cabang mana yang dibuka
-    const targetUrl = WEB_APP_URL.replace("/exec", "/exec") + "?view=" + cabangId;
-    window.open(targetUrl, '_blank');
-}
-    window.addEventListener('load', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const viewCabang = urlParams.get('view');
-    
-    if (viewCabang) {
-        // Sembunyikan Dashboard Pusat, Tampilkan Dashboard Cabang
-        document.getElementById("dashboardPusatSection").style.display = "none";
-        document.getElementById("dashboardKacabSection").style.display = "block";
-        
-        // Panggil fungsi pemuat data cabang Anda (sesuaikan nama fungsi Anda)
-        // Contoh: muatDataMonitor(viewCabang); 
-        console.log("Mode Admin Pusat melihat cabang:", viewCabang);
-    }
-});
 </script>
 </body>
 </html>
