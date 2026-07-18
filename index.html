@@ -1041,25 +1041,31 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                         </thead>
                         <tbody>`;
             
-            // Loop render tabel dengan class 'sunday-row'
-            for (let i = 2; i < headerTanggal.length; i += 2) {
-                if (!headerTanggal[i] || headerTanggal[i].toString().includes("KETERANGAN")) break;
+// 3. Render Tabel dengan format Jam:Menit dan Highlight Hari Minggu
+for (let i = 2; i < headerTanggal.length; i += 2) {
+    if (!headerTanggal[i] || headerTanggal[i].toString().includes("KETERANGAN")) break;
 
-                let d = new Date(headerTanggal[i]);
-                if (isNaN(d.getTime())) continue;
+    // AMBIL TEKS TANGGAL DARI GOOGLE SHEETS
+    let rawDate = headerTanggal[i]; 
+    
+    // Konversi format DD/MM/YYYY ke format yang bisa dibaca JS (YYYY-MM-DD)
+    let parts = rawDate.split('/');
+    let d = new Date(parts[2], parts[1] - 1, parts[0]);
+    
+    if (isNaN(d.getTime())) continue;
 
-                let tglDisplay = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
-                
-                // Deteksi hari Minggu (getUTCDay 0 = Minggu) menggunakan class, bukan style inline
-                let isSunday = (d.getUTCDay() === 0);
-                let rowClass = isSunday ? 'class="sunday-row"' : '';
-                
-                html += `<tr ${rowClass}>
-                    <td>${tglDisplay}</td>
-                    <td>${formatJam(rowKaryawan[i]) || '-'}</td>
-                    <td>${formatJam(rowKaryawan[i+1]) || '-'}</td>
-                </tr>`;
-            }
+    let tglDisplay = rawDate; // Tampilkan apa adanya dari Sheets (DD/MM/YYYY)
+    
+    // Deteksi hari Minggu (0 = Minggu)
+    let isSunday = (d.getDay() === 0);
+    let rowClass = isSunday ? 'class="sunday-row"' : '';
+    
+    html += `<tr ${rowClass}>
+        <td>${tglDisplay}</td>
+        <td>${formatJam(rowKaryawan[i]) || '-'}</td>
+        <td>${formatJam(rowKaryawan[i+1]) || '-'}</td>
+    </tr>`;
+}
             
             html += `</tbody></table></div>
                      <button class="btn btn-secondary w-100 mt-2" onclick="closeModal()">Kembali</button>`;
