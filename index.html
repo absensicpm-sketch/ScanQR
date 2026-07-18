@@ -382,7 +382,7 @@ function prosesLogin() {
 
             document.getElementById("loginSection").classList.add("hidden-section");
 
-            if (res.role === "kacab") {
+if (res.role === "kacab") {
                 document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
                 document.getElementById("displayAreaKacab").innerText = "Area: " + (res.area || "Tanpa Area");
                 
@@ -393,14 +393,20 @@ function prosesLogin() {
                 if (typeof muatDataMonitor === 'function') {
                     muatDataMonitor(res.area, globalSheetId);
                 }
-                else if (res.role === "superadmin") {
-    // Tampilkan dashboard admin pusat
-    document.getElementById("dashboardPusatSection").classList.remove("hidden-section"); 
-    
-    // Panggil fungsi untuk mengambil data ringkasan cabang
-    muatDashboardPusat(); 
-}
-            } else if (res.role === "karyawan") {
+            } 
+            // Blok superadmin dipindahkan keluar dari kurung kurawal 'kacab'
+            else if (res.role === "superadmin") {
+                // Tampilkan dashboard admin pusat
+                document.getElementById("dashboardPusatSection").classList.remove("hidden-section"); 
+                
+                // Panggil fungsi untuk mengambil data ringkasan cabang
+                if (typeof muatDashboardPusat === 'function') {
+                    muatDashboardPusat(); 
+                } else {
+                    console.error("Fungsi muatDashboardPusat tidak ditemukan!");
+                }
+            }
+             else if (res.role === "karyawan") {
                 console.log("Mencoba login sebagai karyawan...");
                 daftarCabang = res.cabangList;
                 
