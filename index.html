@@ -843,6 +843,8 @@ function prosesLogin() {
         logout();
     }
 
+/* ... (kode di atas tidak berubah) ... */
+
 function logout() {  
     // 1. Matikan semua hardware & scanner
     matikanSemuaAliranKamera();
@@ -874,7 +876,6 @@ function logout() {
     if (rememberBox) rememberBox.checked = false;
     
     // 4. Reset tampilan semua section
-    // Menambahkan "dashboardPusatSection" agar dashboard admin juga ikut tertutup
     const sectionsToHide = [
         "karyawanSection", 
         "toiletSection", 
@@ -895,19 +896,12 @@ function logout() {
 
     console.log("Logout berhasil, semua sesi dan tampilan telah direset.");
 }
-    
-    // 6. Tampilkan kembali layar login
-    const loginSection = document.getElementById("loginSection");
-    if (loginSection) loginSection.classList.remove("hidden-section");
 
-    console.log("Logout berhasil, data sesi dan kredensial dibersihkan.");
-}
 window.onload = function() {
     // Saat halaman dimuat, isi dengan username terakhir jika ada
     let lastUser = localStorage.getItem("cpm_last_user");
     if (lastUser) {
         document.getElementById("username").value = lastUser;
-        // Trigger event blur untuk memicu pengisian password otomatis
         document.getElementById("username").dispatchEvent(new Event('blur'));
     }
 
@@ -925,6 +919,8 @@ window.onload = function() {
         }
     });
 };
+
+/* ... (lanjutkan dengan fungsi muatDataMonitor, dll) ... */
 function muatDataMonitorSaatRefresh() {
     console.log("Memulai proses refresh data...");
     let areaText = document.getElementById("displayAreaKacab").innerText.replace("Area: ", "");
