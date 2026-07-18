@@ -1111,13 +1111,10 @@ function closeModal() {
 
 function muatDashboardPusat() {
     const display = document.getElementById('displayDataPusat');
-    display.innerHTML = '<div class="text-center">Memuat data dari semua cabang...</div>';
+    display.innerHTML = '<div class="text-center">Memuat data...</div>';
 
-    fetch(WEB_APP_URL + "?action=getDashboardAdmin", { 
-        method: 'GET' 
-    })
-    .then(response => response.json())
-    .then(res => {
+    // Mendefinisikan callback global
+    window.handleData = function(res) {
         if (res.status === "success") {
             let html = `
                 <table class="table table-bordered table-striped">
@@ -1147,11 +1144,15 @@ function muatDashboardPusat() {
         } else {
             display.innerHTML = "Gagal memuat data: " + res.message;
         }
-    })
-    .catch(err => {
-        console.error("Error Fetch:", err);
-        display.innerHTML = "Error koneksi ke server.";
-    });
+    };
+
+    // Memanggil data via JSONP (Script Injection)
+    const script = document.createElement('script');
+    script.src = WEB_APP_URL + "?action=getDashboardAdmin&callback=handleData";
+    document.body.appendChild(script);
+    
+    // Hapus script setelah selesai untuk kebersihan
+    script.onload = function() { script.remove(); };
 }
 
 function bukaDashboardCabang(cabangId) {
