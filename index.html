@@ -938,12 +938,22 @@ function muatDataMonitorSaatRefresh() {
         alert("Sesi monitor kadaluarsa. Silakan log out dan login kembali.");
     }
 }
+// Tambahkan variabel global ini di bagian atas script Anda
+var globalSheetId = ""; 
+
 function muatDataMonitor(area, sheetId) {
+    // Simpan ke variabel global agar fungsi lain (seperti pilihBulanUntukKaryawan) bisa akses
+    if (sheetId) globalSheetId = sheetId;
+    
+    // Update judul area di tampilan
+    const elArea = document.getElementById("namaAreaDisplay");
+    if (elArea) elArea.innerText = "Area: " + area;
+
     fetch(WEB_APP_URL, {
         method: "POST",
         mode: "cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ aksi: "getMonitorHariIni", areaKacab: area, sheetId: sheetId })
+        body: JSON.stringify({ aksi: "getMonitorHariIni", areaKacab: area, sheetId: globalSheetId })
     })
     .then(r => r.json())
     .then(res => {
@@ -958,7 +968,6 @@ function muatDataMonitor(area, sheetId) {
                 let linkFotoMasuk = item.fotoMasuk || item.foto || ""; 
                 let linkFotoPulang = item.fotoPulang || item.foto || ""; 
 
-                // Perhatikan penambahan class 'dashboard-card' dan penghapusan style inline border-left
                 container.innerHTML += `
                 <div class="col-12 col-md-6 mb-3">
                     <div class="card dashboard-card p-3 shadow-sm border-0">
@@ -1127,17 +1136,19 @@ function muatDashboardPusat() {
                     </thead>
                     <tbody>`;
             
-            res.data.forEach(function(cabang) {
-                html += `<tr>
-                            <td>${cabang.nama}</td>
-                            <td class="text-center"><b>${cabang.hadir}</b></td>
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-primary" onclick="bukaDashboardCabang('${cabang.id}')">
-                                    Lihat Detail
-                                </button>
-                            </td>
-                         </tr>`;
-            });
+           // Di dalam muatDashboardPusat, saat membuat tombol:
+res.data.forEach(function(cabang) {
+    // Asumsikan data cabang Anda memiliki properti .nama dan .sheetId
+    html += `<tr>
+                <td>${cabang.nama}</td>
+                <td class="text-center"><b>${cabang.hadir}</b></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-primary" onclick="bukaDashboardCabang('${cabang.nama}', '${cabang.sheetId}')">
+                        Lihat Detail
+                    </button>
+                </td>
+             </tr>`;
+});
             
             html += `</tbody></table>`;
             display.innerHTML = html;
@@ -1158,8 +1169,8 @@ function muatDashboardPusat() {
 /**
  * Fungsi untuk membuka dashboard cabang di halaman yang sama
  */
-function bukaDashboardCabang(cabangId) {
-    console.log("Membuka dashboard untuk cabang:", cabangId);
+function bukaDashboardCabang(namaArea, idSheet) {
+    console.log("Membuka dashboard untuk:", namaArea, "dengan Sheet ID:", idSheet);
 
     // 1. Sembunyikan Dashboard Pusat
     const pusatSection = document.getElementById("dashboardPusatSection");
@@ -1173,12 +1184,11 @@ function bukaDashboardCabang(cabangId) {
         kacabSection.style.display = "block";
     }
 
-    // 3. Panggil fungsi pemuat data cabang
-    // Pastikan nama fungsi di bawah ini SAMA dengan fungsi pemuat data cabang Anda
+    // 3. Panggil fungsi pemuat data cabang dengan dua parameter
     if (typeof muatDataMonitor === 'function') {
-        muatDataMonitor(cabangId);
+        muatDataMonitor(namaArea, idSheet);
     } else {
-        console.error("Fungsi muatDataMonitor tidak ditemukan di skrip Anda.");
+        console.error("Fungsi muatDataMonitor tidak ditemukan.");
         alert("Gagal memuat data cabang: Fungsi tidak ditemukan.");
     }
 }
