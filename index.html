@@ -1155,9 +1155,21 @@ function muatDashboardPusat() {
     script.onload = function() { script.remove(); };
 }
 
+// Ganti fungsi bukaDashboardCabang dengan ini
 function bukaDashboardCabang(cabangId) {
-    const targetUrl = WEB_APP_URL + "?view=" + cabangId;
-    window.open(targetUrl, '_blank');
+    // 1. Sembunyikan bagian Monitoring Pusat
+    document.getElementById("dashboardPusatSection").style.display = "none";
+    
+    // 2. Tampilkan bagian Dashboard Kacab
+    document.getElementById("dashboardKacabSection").style.display = "block";
+    
+    // 3. Panggil fungsi yang sudah ada untuk memuat data cabang tersebut
+    // Saya asumsikan nama fungsi Anda adalah muatDataMonitor (sesuaikan jika berbeda)
+    if (typeof muatDataMonitor === 'function') {
+        muatDataMonitor(cabangId);
+    } else {
+        console.error("Fungsi muatDataMonitor tidak ditemukan");
+    }
 }
 // Fungsi pendukung untuk membuka dashboard cabang di tab baru
 function bukaDashboardCabang(cabangId) {
