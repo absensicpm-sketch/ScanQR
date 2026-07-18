@@ -85,28 +85,18 @@
         <p class="small mb-0">Monitor Absensi Hari Ini</p>
         <p id="tanggalHariIni" class="small fw-bold mb-0"></p>
     </div>
-    <div class="row text-center mb-2">
-    <div class="col-12">
-        <div class="card bg-success text-white p-2">
-            <strong>Total Hadir Hari Ini: <span id="totalHadirHariIni">0</span></strong>
+    
+    <div class="row text-center mb-3">
+        <div class="col-12">
+            <div class="card bg-success text-white p-2">
+                <strong>Total Hadir Hari Ini: <span id="totalHadirHariIni">0</span></strong>
+            </div>
         </div>
     </div>
-</div>
     
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead class="table-light">
-                <tr>
-                    <th>Nama</th>
-                    <th>Masuk</th>
-                    <th>Pulang</th>
-                    <th>Foto Masuk</th>
-                    <th>Foto Pulang</th>
-                </tr>
-            </thead>
-            <tbody id="tabelMonitorBody">
-            </tbody>
-        </table>
+    <!-- Wadah Card View -->
+    <div id="cardContainer" class="row">
+        <!-- Kartu karyawan akan muncul di sini secara otomatis -->
     </div>
 
     <div class="d-flex gap-2 mt-3 mb-4">
@@ -909,58 +899,46 @@ function muatDataMonitor(area, sheetId) {
         method: "POST",
         mode: "cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-            aksi: "getMonitorHariIni",
-            areaKacab: area,
-            sheetId: sheetId
-        })
+        body: JSON.stringify({ aksi: "getMonitorHariIni", areaKacab: area, sheetId: sheetId })
     })
     .then(r => r.json())
     .then(res => {
-        let tbody = document.getElementById("tabelMonitorBody");
-        tbody.innerHTML = "";
+        let container = document.getElementById("cardContainer");
+        container.innerHTML = "";
 
         if (res && res.status === "success" && res.data) {
             res.data.forEach(item => {
                 let nama = item.nama || "-";
                 let jamMasuk = item.masuk || "-";
                 let jamPulang = item.pulang || "-";
-                
                 let linkFotoMasuk = item.fotoMasuk || item.foto || ""; 
                 let linkFotoPulang = item.fotoPulang || item.foto || ""; 
 
-                let btnMasuk = (jamMasuk !== "-") ? 
-                    `<a href="${linkFotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
-                    `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
-                
-                let btnPulang = (jamPulang !== "-") ? 
-                    `<a href="${linkFotoPulang}" target="_blank" class="btn btn-sm btn-info text-white">Lihat</a>` : 
-                    `<button class="btn btn-sm btn-secondary" disabled>Lihat</button>`;
-
-                tbody.innerHTML += `<tr>
-                    <td>
-                        <strong>${nama}</strong><br>
-                        <button class="btn btn-sm btn-outline-primary mt-1" onclick="pilihBulanUntukKaryawan('${nama}')">Detail</button>
-                    </td>
-                    <td>${jamMasuk}</td>
-                    <td>${jamPulang}</td>
-                    <td>${btnMasuk}</td>
-                    <td>${btnPulang}</td>
-                </tr>`;
+                container.innerHTML += `
+                <div class="col-12 col-md-6 mb-3">
+                    <div class="card p-3 shadow-sm border-0" style="border-left: 5px solid #E30613;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0"><strong>${nama}</strong></h6>
+                            <button class="btn btn-sm btn-outline-primary" onclick="pilihBulanUntukKaryawan('${nama}')">Detail</button>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted mb-3">
+                            <span>Masuk: <b>${jamMasuk}</b></span>
+                            <span>Pulang: <b>${jamPulang}</b></span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            ${(jamMasuk !== "-") ? `<a href="${linkFotoMasuk}" target="_blank" class="btn btn-sm btn-info text-white flex-fill">Foto Masuk</a>` : `<button class="btn btn-sm btn-secondary flex-fill" disabled>Foto Masuk</button>`}
+                            ${(jamPulang !== "-") ? `<a href="${linkFotoPulang}" target="_blank" class="btn btn-sm btn-info text-white flex-fill">Foto Pulang</a>` : `<button class="btn btn-sm btn-secondary flex-fill" disabled>Foto Pulang</button>`}
+                        </div>
+                    </div>
+                </div>`;
             });
-
-            // PERBAIKAN: Letakkan di sini (setelah loop selesai)
-            let jumlahHadir = res.data.length; 
-            document.getElementById('totalHadirHariIni').innerText = jumlahHadir;
-
+            document.getElementById('totalHadirHariIni').innerText = res.data.length;
         } else {
-            tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Data tidak ditemukan</td></tr>";
+            container.innerHTML = "<p class='text-center w-100'>Data tidak ditemukan</p>";
             document.getElementById('totalHadirHariIni').innerText = "0";
         }
     })
-    .catch(err => {
-        console.error("Error:", err);
-    });
+    .catch(err => { console.error("Error:", err); });
 }
 function pilihBulanUntukKaryawan(namaKaryawan) {
     document.getElementById("cpmModalTitle").innerHTML = "Pilih Periode";
