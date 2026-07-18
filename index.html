@@ -1113,7 +1113,7 @@ function muatDashboardPusat() {
     const display = document.getElementById('displayDataPusat');
     display.innerHTML = '<div class="text-center">Memuat data dari semua cabang...</div>';
 
-    // Menggunakan fetch karena file ada di GitHub, bukan di Google Apps Script
+    // Menggunakan fetch untuk mengambil data dari Google Apps Script
     fetch(WEB_APP_URL + "?action=getDashboardAdmin", { 
         method: 'GET' 
     })
@@ -1125,7 +1125,8 @@ function muatDashboardPusat() {
                     <thead class="table-danger">
                         <tr>
                             <th>Nama Cabang</th>
-                            <th>Hadir Hari Ini</th>
+                            <th>Hadir</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>`;
@@ -1134,6 +1135,11 @@ function muatDashboardPusat() {
                 html += `<tr>
                             <td>${cabang.nama}</td>
                             <td class="text-center"><b>${cabang.hadir}</b></td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-primary" onclick="bukaDashboardCabang('${cabang.id}')">
+                                    Lihat Detail
+                                </button>
+                            </td>
                          </tr>`;
             });
             
@@ -1148,6 +1154,27 @@ function muatDashboardPusat() {
         display.innerHTML = "Error koneksi ke server.";
     });
 }
+
+// Fungsi pendukung untuk membuka dashboard cabang di tab baru
+function bukaDashboardCabang(cabangId) {
+    // Membuka URL aplikasi dengan parameter view agar sistem tahu cabang mana yang dibuka
+    const targetUrl = WEB_APP_URL.replace("/exec", "/exec") + "?view=" + cabangId;
+    window.open(targetUrl, '_blank');
+}
+    window.addEventListener('load', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewCabang = urlParams.get('view');
+    
+    if (viewCabang) {
+        // Sembunyikan Dashboard Pusat, Tampilkan Dashboard Cabang
+        document.getElementById("dashboardPusatSection").style.display = "none";
+        document.getElementById("dashboardKacabSection").style.display = "block";
+        
+        // Panggil fungsi pemuat data cabang Anda (sesuaikan nama fungsi Anda)
+        // Contoh: muatDataMonitor(viewCabang); 
+        console.log("Mode Admin Pusat melihat cabang:", viewCabang);
+    }
+});
 </script>
 </body>
 </html>
