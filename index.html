@@ -344,19 +344,15 @@
 function prosesLogin() {
     const user = document.getElementById("username").value.trim();
     const pass = document.getElementById("password").value.trim();
-    const ingatSaya = document.getElementById("ingatSaya").checked; // Ambil status checkbox
+    const ingatSaya = document.getElementById("ingatSaya").checked;
     const btn = document.getElementById("btnLogin");
     const alertBox = document.getElementById("loginAlert");
 
-    if (!user || !pass) {
-        alert("Username dan Password wajib diisi!");
-        return;
-    }
+    if (!user || !pass) { alert("Username dan Password wajib diisi!"); return; }
 
     btn.disabled = true;
     btn.innerText = "Memproses...";
-    alertBox.classList.add("d-none");
-
+    
     fetch(WEB_APP_URL, {
         method: "POST",
         mode: "cors",
@@ -369,75 +365,32 @@ function prosesLogin() {
         btn.innerText = "Masuk Aplikasi";
         
         if (res.status === "success") {
-            // Logika Simpan Password ke localStorage
-          if (ingatSaya) {
-    // Simpan data dalam bentuk objek JSON agar setiap user punya slot sendiri
-    let dataLogin = { password: pass };
-    localStorage.setItem("cpm_save_" + user, JSON.stringify(dataLogin));
-    // Simpan username terakhir yang login agar bisa kita track
-    localStorage.setItem("cpm_last_user", user); 
-} else {
-    localStorage.removeItem("cpm_save_" + user);
-}
-
+            if (ingatSaya) {
+                localStorage.setItem("cpm_save_" + user, JSON.stringify({ password: pass }));
+                localStorage.setItem("cpm_last_user", user); 
+            }
+            
             document.getElementById("loginSection").classList.add("hidden-section");
 
-if (res.role === "kacab") {
+            if (res.role === "kacab") {
                 document.getElementById("dashboardKacabSection").classList.remove("hidden-section");
                 document.getElementById("displayAreaKacab").innerText = "Area: " + (res.area || "Tanpa Area");
-                
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                document.getElementById("tanggalHariIni").innerText = new Date().toLocaleDateString('id-ID', options);
+                document.getElementById("tanggalHariIni").innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 
                 globalSheetId = res.sheetId; 
-                if (typeof muatDataMonitor === 'function') {
-                    muatDataMonitor(res.area, globalSheetId);
-                }
-            } 
-            // Blok superadmin dipindahkan keluar dari kurung kurawal 'kacab'
-            else if (res.role === "superadmin") {
-                // Tampilkan dashboard admin pusat
+                muatDataMonitor(res.area, globalSheetId);
+            } else if (res.role === "superadmin") {
                 document.getElementById("dashboardPusatSection").classList.remove("hidden-section"); 
-                
-                // Panggil fungsi untuk mengambil data ringkasan cabang
-                if (typeof muatDashboardPusat === 'function') {
-                    muatDashboardPusat(); 
-                } else {
-                    console.error("Fungsi muatDashboardPusat tidak ditemukan!");
-                }
-            }
-             else if (res.role === "karyawan") {
-                console.log("Mencoba login sebagai karyawan...");
+                muatDashboardPusat(); 
+            } else if (res.role === "karyawan") {
                 daftarCabang = res.cabangList;
-                
-                let menu = document.getElementById("dashboardMenuSection");
-                if (menu) {
-                    menu.classList.remove("hidden-section");
-                    console.log("Dashboard Karyawan ditampilkan.");
-                } else {
-                    alert("Error: ID 'dashboardMenuSection' tidak ditemukan di HTML!");
-                }
-                
-                if (typeof mulaiTrackingGPS === 'function') {
-                    mulaiTrackingGPS();
-                } else {
-                    alert("Error: Fungsi mulaiTrackingGPS tidak ditemukan!");
-                }
-            } else {
-                alert("Role tidak dikenali: " + res.role);
-                document.getElementById("loginSection").classList.remove("hidden-section");
+                document.getElementById("dashboardMenuSection").classList.remove("hidden-section");
+                if (typeof mulaiTrackingGPS === 'function') mulaiTrackingGPS();
             }
         } else {
             alertBox.innerText = res.message;
             alertBox.classList.remove("d-none");
         }
-    })
-    .catch(err => {
-        btn.disabled = false;
-        btn.innerText = "Masuk Aplikasi";
-        alertBox.innerText = "Error koneksi: " + err.message;
-        alertBox.classList.remove("d-none");
-        console.error("Error Fetch:", err);
     });
 }
 // ...
@@ -857,23 +810,27 @@ if (res.role === "kacab") {
     }
 
 function logout() {  
-    // 2. Matikan hardware & scanner
+    // 1. Matikan semua hardware & scanner
     matikanSemuaAliranKamera();
+    
+    // Stop scanner QR Absensi
     if (typeof html5QrcodeScanner !== 'undefined' && html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-        html5QrcodeScanner.stop();
+        html5QrcodeScanner.stop().catch(err => console.error("Scanner Absen error:", err));
     }
+    
+    // Stop scanner QR Toilet
     if (typeof html5QrcodeScannerToilet !== 'undefined' && html5QrcodeScannerToilet && html5QrcodeScannerToilet.isScanning) {
-        html5QrcodeScannerToilet.stop();
+        html5QrcodeScannerToilet.stop().catch(err => console.error("Scanner Toilet error:", err));
     }
 
-    // 3. Bersihkan Session dan Variabel Global
+    // 2. Bersihkan Session dan Variabel Global
     sessionStorage.clear();
     globalSheetId = "";
     cabangTerpilih = "";
     daftarCabang = [];
     userCoords = "";
 
-    // 4. Bersihkan input di layar login
+    // 3. Bersihkan input di layar login
     const userField = document.getElementById("username");
     const passField = document.getElementById("password");
     const rememberBox = document.getElementById("ingatSaya");
@@ -882,19 +839,28 @@ function logout() {
     if (passField) passField.value = "";
     if (rememberBox) rememberBox.checked = false;
     
-    // 5. Reset tampilan semua section
+    // 4. Reset tampilan semua section
+    // Menambahkan "dashboardPusatSection" agar dashboard admin juga ikut tertutup
     const sectionsToHide = [
         "karyawanSection", 
         "toiletSection", 
         "absensiForm", 
         "dashboardMenuSection", 
-        "dashboardKacabSection"
+        "dashboardKacabSection",
+        "dashboardPusatSection" 
     ];
     
     sectionsToHide.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add("hidden-section");
     });
+    
+    // 5. Tampilkan kembali layar login
+    const loginSection = document.getElementById("loginSection");
+    if (loginSection) loginSection.classList.remove("hidden-section");
+
+    console.log("Logout berhasil, semua sesi dan tampilan telah direset.");
+}
     
     // 6. Tampilkan kembali layar login
     const loginSection = document.getElementById("loginSection");
@@ -938,17 +904,16 @@ function muatDataMonitorSaatRefresh() {
         alert("Sesi monitor kadaluarsa. Silakan log out dan login kembali.");
     }
 }
-// Tambahkan variabel global ini di bagian atas script Anda
-var globalSheetId = ""; 
 
 function muatDataMonitor(area, sheetId) {
-    // Simpan ke variabel global agar fungsi lain (seperti pilihBulanUntukKaryawan) bisa akses
+    // 1. Sinkronisasi globalSheetId
     if (sheetId) globalSheetId = sheetId;
     
-    // Update judul area di tampilan
-    const elArea = document.getElementById("namaAreaDisplay");
+    // 2. Update judul area di tampilan
+    const elArea = document.getElementById("displayAreaKacab");
     if (elArea) elArea.innerText = "Area: " + area;
 
+    // 3. Ambil data dari server
     fetch(WEB_APP_URL, {
         method: "POST",
         mode: "cors",
@@ -958,7 +923,7 @@ function muatDataMonitor(area, sheetId) {
     .then(r => r.json())
     .then(res => {
         let container = document.getElementById("cardContainer");
-        container.innerHTML = "";
+        container.innerHTML = ""; // Bersihkan kontainer sebelum isi ulang
 
         if (res && res.status === "success" && res.data) {
             res.data.forEach(item => {
@@ -968,6 +933,7 @@ function muatDataMonitor(area, sheetId) {
                 let linkFotoMasuk = item.fotoMasuk || item.foto || ""; 
                 let linkFotoPulang = item.fotoPulang || item.foto || ""; 
 
+                // Membuat kartu untuk setiap karyawan
                 container.innerHTML += `
                 <div class="col-12 col-md-6 mb-3">
                     <div class="card dashboard-card p-3 shadow-sm border-0">
@@ -986,13 +952,18 @@ function muatDataMonitor(area, sheetId) {
                     </div>
                 </div>`;
             });
+            // Update total hadir
             document.getElementById('totalHadirHariIni').innerText = res.data.length;
         } else {
+            // Tampilan jika data kosong
             container.innerHTML = "<p class='text-center w-100'>Data tidak ditemukan</p>";
             document.getElementById('totalHadirHariIni').innerText = "0";
         }
     })
-    .catch(err => { console.error("Error:", err); });
+    .catch(err => { 
+        console.error("Error memuat data monitor:", err);
+        document.getElementById("cardContainer").innerHTML = "<p class='text-center text-danger'>Gagal memuat data. Silakan coba lagi.</p>";
+    });
 }
 function pilihBulanUntukKaryawan(namaKaryawan) {
     document.getElementById("cpmModalTitle").innerHTML = "Pilih Periode";
@@ -1172,19 +1143,19 @@ res.data.forEach(function(cabang) {
 function bukaDashboardCabang(namaArea, idSheet) {
     console.log("Membuka dashboard untuk:", namaArea, "dengan Sheet ID:", idSheet);
 
-    // 1. Sembunyikan Dashboard Pusat
+    // 1. Sembunyikan Dashboard Pusat menggunakan class
     const pusatSection = document.getElementById("dashboardPusatSection");
     if (pusatSection) {
-        pusatSection.style.display = "none";
+        pusatSection.classList.add("hidden-section");
     }
 
-    // 2. Tampilkan Dashboard Cabang
+    // 2. Tampilkan Dashboard Cabang dengan menghapus class hidden
     const kacabSection = document.getElementById("dashboardKacabSection");
     if (kacabSection) {
-        kacabSection.style.display = "block";
+        kacabSection.classList.remove("hidden-section");
     }
 
-    // 3. Panggil fungsi pemuat data cabang dengan dua parameter
+    // 3. Panggil fungsi pemuat data cabang
     if (typeof muatDataMonitor === 'function') {
         muatDataMonitor(namaArea, idSheet);
     } else {
