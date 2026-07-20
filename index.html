@@ -1257,13 +1257,19 @@ function bukaDashboardCabang(namaArea) {
         pusatSection.classList.add("hidden-section");
     }
 
-    // 2. Tampilkan Dashboard Cabang
-    const kacabSection = document.getElementById("dashboardKacabSection");
-    if (kacabSection) {
-        kacabSection.classList.remove("hidden-section");
+    // 2. Tampilkan Detail Cabang khusus Superadmin (Bukan dashboardKacabSection)
+    const detailPusatSection = document.getElementById("detailCabangPusatSection");
+    if (detailPusatSection) {
+        detailPusatSection.classList.remove("hidden-section");
     }
 
-    // 3. Panggil fungsi pemuat data monitor cabang
+    // Update teks judul area pada section detail pusat
+    const displayArea = document.getElementById("displayAreaDetailPusat");
+    if (displayArea) {
+        displayArea.innerText = "Area: " + namaArea;
+    }
+
+    // 3. Panggil fungsi pemuat data monitor cabang (sesuaikan parameter dengan fungsi yang ada di kodenya)
     if (typeof muatDataMonitor === 'function') {
         muatDataMonitor(namaArea, targetSheetId);
     } else {
@@ -1273,10 +1279,10 @@ function bukaDashboardCabang(namaArea) {
 }
 
 function kembaliKeDashboardPusat() {
-    // 1. Sembunyikan Dashboard Cabang
-    const kacabSection = document.getElementById("dashboardKacabSection");
-    if (kacabSection) {
-        kacabSection.classList.add("hidden-section");
+    // 1. Sembunyikan Detail Cabang Pusat
+    const detailPusatSection = document.getElementById("detailCabangPusatSection");
+    if (detailPusatSection) {
+        detailPusatSection.classList.add("hidden-section");
     }
 
     // 2. Tampilkan Kembali Dashboard Pusat
@@ -1286,7 +1292,9 @@ function kembaliKeDashboardPusat() {
     }
 
     // 3. Muat ulang data pusat agar tetap sinkron
-    muatDashboardPusat();
+    if (typeof muatDashboardPusat === 'function') {
+        muatDashboardPusat();
+    }
 }
 </script>
 </body>
