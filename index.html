@@ -976,11 +976,14 @@ function muatDataMonitor(area, sheetId) {
     // 1. Sinkronisasi globalSheetId
     if (sheetId) globalSheetId = sheetId;
     
-    // 2. Update judul area di tampilan
-    const elArea = document.getElementById("displayAreaKacab");
+    // 2. Deteksi apakah sedang dibuka dari Superadmin (Detail Pusat) atau Kacab Murni
+    let isDetailPusat = !document.getElementById('detailCabangPusatSection').classList.contains('hidden-section');
+    
+    // 3. Update judul area di tampilan yang sesuai
+    let elArea = document.getElementById(isDetailPusat ? "displayAreaDetailPusat" : "displayAreaKacab");
     if (elArea) elArea.innerText = "Area: " + area;
 
-    // 3. Ambil data dari server
+    // 4. Ambil data dari server
     fetch(WEB_APP_URL, {
         method: "POST",
         mode: "cors",
@@ -989,7 +992,13 @@ function muatDataMonitor(area, sheetId) {
     })
     .then(r => r.json())
     .then(res => {
-        let container = document.getElementById("cardContainer");
+        // Tentukan kontainer dan elemen total hadir secara dinamis
+        let containerId = isDetailPusat ? "cardContainerDetailPusat" : "cardContainer";
+        let totalId = isDetailPusat ? "totalHadirDetailPusat" : "totalHadirHariIni";
+
+        let container = document.getElementById(containerId);
+        if (!container) return;
+        
         container.innerHTML = ""; // Bersihkan kontainer sebelum isi ulang
 
         if (res && res.status === "success" && res.data) {
@@ -1019,19 +1028,26 @@ function muatDataMonitor(area, sheetId) {
                     </div>
                 </div>`;
             });
-            // Update total hadir
-            document.getElementById('totalHadirHariIni').innerText = res.data.length;
+            // Update total hadir sesuai halaman aktif
+            let elTotal = document.getElementById(totalId);
+            if (elTotal) elTotal.innerText = res.data.length;
         } else {
             // Tampilan jika data kosong
             container.innerHTML = "<p class='text-center w-100'>Data tidak ditemukan</p>";
-            document.getElementById('totalHadirHariIni').innerText = "0";
+            let elTotal = document.getElementById(totalId);
+            if (elTotal) elTotal.innerText = "0";
         }
     })
     .catch(err => { 
         console.error("Error memuat data monitor:", err);
-        document.getElementById("cardContainer").innerHTML = "<p class='text-center text-danger'>Gagal memuat data. Silakan coba lagi.</p>";
+        let containerId = (!document.getElementById('detailCabangPusatSection').classList.contains('hidden-section')) ? "cardContainerDetailPusat" : "cardContainer";
+        let container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = "<p class='text-center text-danger'>Gagal memuat data. Silakan coba lagi.</p>";
+        }
     });
 }
+
 function pilihBulanUntukKaryawan(namaKaryawan) {
     document.getElementById("cpmModalTitle").innerHTML = "Pilih Periode";
     document.getElementById("cpmModalBody").innerHTML = "Memuat daftar bulan...";
@@ -1052,7 +1068,6 @@ function pilihBulanUntukKaryawan(namaKaryawan) {
         if(response.status === "success") {
             let html = `<p>Pilih bulan untuk <b>${namaKaryawan}</b>:</p><div class="d-grid gap-2">`;
             response.data.forEach(bulan => {
-                // SINI PERUBAHANNYA: Memanggil fungsi tampilkanDataAbsensi
                 html += `<button class="btn btn-outline-danger mb-1" onclick="tampilkanDataAbsensi('${namaKaryawan}', '${bulan}')">${bulan}</button>`;
             });
             html += `</div>`;
@@ -1061,6 +1076,7 @@ function pilihBulanUntukKaryawan(namaKaryawan) {
     })
     .catch(err => console.error("Error:", err));
 }
+
 function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
     document.getElementById("cpmModalBody").innerHTML = "Memuat data...";
 
@@ -1122,7 +1138,6 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                         </thead>
                         <tbody>`;
             
-            // Loop render tabel dengan class 'sunday-row'
             for (let i = 2; i < headerTanggal.length; i += 2) {
                 if (!headerTanggal[i] || headerTanggal[i].toString().includes("KETERANGAN")) break;
 
@@ -1130,8 +1145,6 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
                 if (isNaN(d.getTime())) continue;
 
                 let tglDisplay = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
-                
-                // Deteksi hari Minggu (getUTCDay 0 = Minggu) menggunakan class, bukan style inline
                 let isSunday = (d.getUTCDay() === 0);
                 let rowClass = isSunday ? 'class="sunday-row"' : '';
                 
@@ -1149,13 +1162,14 @@ function tampilkanDataAbsensi(namaKaryawan, namaBulan) {
         }
     });
 }
-// Tambahkan fungsi ini di luar untuk menutup modal tanpa reload
+
 function closeModal() {
     var modalEl = document.getElementById('cpmModal');
     var modal = bootstrap.Modal.getInstance(modalEl);
-    modal.hide();
+    if (modal) {
+        modal.hide();
+    }
 }
-
 function muatDashboardPusat() {
     const display = document.getElementById('displayDataPusat');
     display.innerHTML = '<div class="text-center">Memuat data...</div>';
