@@ -1137,19 +1137,22 @@ function muatDashboardPusat() {
                     </thead>
                     <tbody>`;
             
-           // Di dalam muatDashboardPusat, saat membuat tombol:
-res.data.forEach(function(cabang) {
-    // Asumsikan data cabang Anda memiliki properti .nama dan .sheetId
-    html += `<tr>
-                <td>${cabang.nama}</td>
-                <td class="text-center"><b>${cabang.hadir}</b></td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-primary" onclick="bukaDashboardCabang('${cabang.nama}', '${cabang.sheetId}')">
-                        Lihat Detail
-                    </button>
-                </td>
-             </tr>`;
-});
+            res.data.forEach(function(cabang) {
+                // Memastikan properti sheetId ditangkap dengan aman
+                let sId = cabang.sheetId || cabang.idSheet || cabang.spreadsheetId || "";
+                let namaCabang = cabang.nama || cabang.namaCabang || "-";
+                let hadirCount = cabang.hadir || 0;
+
+                html += `<tr>
+                            <td>${namaCabang}</td>
+                            <td class="text-center"><b>${hadirCount}</b></td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-primary" onclick="bukaDashboardCabang('${namaCabang}', '${sId}')">
+                                    Lihat Detail
+                                </button>
+                            </td>
+                         </tr>`;
+            });
             
             html += `</tbody></table>`;
             display.innerHTML = html;
