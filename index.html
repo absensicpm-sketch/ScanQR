@@ -1123,7 +1123,6 @@ function muatDashboardPusat() {
     const display = document.getElementById('displayDataPusat');
     display.innerHTML = '<div class="text-center">Memuat data...</div>';
 
-    // Mendefinisikan callback global
     window.handleData = function(res) {
         if (res.status === "success") {
             let html = `
@@ -1138,8 +1137,6 @@ function muatDashboardPusat() {
                     <tbody>`;
             
             res.data.forEach(function(cabang) {
-                // Memastikan properti sheetId ditangkap dengan aman
-                let sId = cabang.sheetId || cabang.idSheet || cabang.spreadsheetId || "";
                 let namaCabang = cabang.nama || cabang.namaCabang || "-";
                 let hadirCount = cabang.hadir || 0;
 
@@ -1147,7 +1144,7 @@ function muatDashboardPusat() {
                             <td>${namaCabang}</td>
                             <td class="text-center"><b>${hadirCount}</b></td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-primary" onclick="bukaDashboardCabang('${namaCabang}', '${sId}')">
+                                <button class="btn btn-sm btn-primary" onclick="bukaDashboardCabang('${namaCabang}')">
                                     Lihat Detail
                                 </button>
                             </td>
@@ -1161,42 +1158,59 @@ function muatDashboardPusat() {
         }
     };
 
-    // Memanggil data via JSONP (Script Injection)
     const script = document.createElement('script');
     script.src = WEB_APP_URL + "?action=getDashboardAdmin&callback=handleData";
     document.body.appendChild(script);
-    
-    // Hapus script setelah selesai untuk kebersihan
     script.onload = function() { script.remove(); };
 }
 
 /**
  * Fungsi untuk membuka dashboard cabang di halaman yang sama
  */
-function bukaDashboardCabang(namaArea, idSheet) {
-    console.log("Membuka dashboard untuk:", namaArea, "dengan Sheet ID:", idSheet);
+function bukaDashboardCabang(namaArea) {
+    console.log("Membuka dashboard untuk:", namaArea);
 
-    // 1. Sembunyikan Dashboard Pusat menggunakan class
+    // KAMUS SHEET ID: Masukkan ID Google Spreadsheet masing-masing cabang di sini
+    const mappingSheetId = {
+        "PT IMORA MOTOR": "1b1Fs3HFpPlVaUS6ujD5CEPh8Jk2htLrYS5DCurUyBYA",
+        "HONDA MUGEN": "17vdGk5ii6DyegJOSIQC1twiR3LUtzuhF_iQ4g0f2JoI",
+        "HARCO MANGGA DUA": "1lZtcdoXF6aBv9o0SjAqlQgutyqtbI1x71nC13h5w3Uw",
+        "WERKSPACE": "16Kd44dkPc710iIqnkTmnrkSAuwAyiPyhdCX5kalHUas",
+        "JAECOO ANTAPURA": "1ohldle0JAeE2sFMPxz0O_k9Krm9T7sc6p7QYhJXpWfs",
+        "PT. ESTHER BOGATAMA": "1v-IfV8hCAInpT-tjgNBk6t9X41M_7uH5RO-ZycHKiA0",
+        "PT. JUMBO KARYA AGUNG": "1-6J1lIeApFnTlz6S3YnjBxVY6TaDSWFF0T5e1Aq1VWw",
+        "MEGAH MEDIKA PHARMA": "1ap6p6i2hdf-RuQ_P40jpgfWBrpBU7oXPw_46yoyGX8Y",
+        "GRAHA MOBILKOM": "19hjhvzzwpFM75vKG81nKFH8KwEc1iaX7hdzEJCoekB4"
+        // Tambahkan cabang lainnya sesuai nama yang muncul di tabel
+    };
+
+    let targetSheetId = mappingSheetId[namaArea];
+
+    if (!targetSheetId || targetSheetId.includes("MASUKKAN")) {
+        alert("Sheet ID untuk cabang " + namaArea + " belum diatur di dalam kode frontend!");
+        return;
+    }
+
+    // 1. Sembunyikan Dashboard Pusat
     const pusatSection = document.getElementById("dashboardPusatSection");
     if (pusatSection) {
         pusatSection.classList.add("hidden-section");
     }
 
-    // 2. Tampilkan Dashboard Cabang dengan menghapus class hidden
+    // 2. Tampilkan Dashboard Cabang
     const kacabSection = document.getElementById("dashboardKacabSection");
     if (kacabSection) {
         kacabSection.classList.remove("hidden-section");
     }
 
-    // 3. Panggil fungsi pemuat data cabang
+    // 3. Panggil fungsi pemuat data monitor cabang
     if (typeof muatDataMonitor === 'function') {
-        muatDataMonitor(namaArea, idSheet);
+        muatDataMonitor(namaArea, targetSheetId);
     } else {
         console.error("Fungsi muatDataMonitor tidak ditemukan.");
         alert("Gagal memuat data cabang: Fungsi tidak ditemukan.");
     }
 }
-
 </script>
 </body>
 </html>
