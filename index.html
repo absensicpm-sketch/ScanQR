@@ -1125,7 +1125,30 @@ function muatDashboardPusat() {
 
     window.handleData = function(res) {
         if (res.status === "success") {
+            let totalArea = res.data.length;
+            let totalHadirSemua = 0;
+
+            res.data.forEach(function(cabang) {
+                let hadirCount = parseInt(cabang.hadir) || 0;
+                totalHadirSemua += hadirCount;
+            });
+
             let html = `
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="card text-white bg-primary p-2 text-center">
+                            <small>Total Area</small>
+                            <h4 class="mb-0">${totalArea}</h4>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card text-white bg-success p-2 text-center">
+                            <small>Total Hadir</small>
+                            <h4 class="mb-0">${totalHadirSemua}</h4>
+                        </div>
+                    </div>
+                </div>
+
                 <table class="table table-bordered table-striped">
                     <thead class="table-danger">
                         <tr>
@@ -1210,6 +1233,23 @@ function bukaDashboardCabang(namaArea) {
         console.error("Fungsi muatDataMonitor tidak ditemukan.");
         alert("Gagal memuat data cabang: Fungsi tidak ditemukan.");
     }
+}
+
+function kembaliKeDashboardPusat() {
+    // 1. Sembunyikan Dashboard Cabang
+    const kacabSection = document.getElementById("dashboardKacabSection");
+    if (kacabSection) {
+        kacabSection.classList.add("hidden-section");
+    }
+
+    // 2. Tampilkan Kembali Dashboard Pusat
+    const pusatSection = document.getElementById("dashboardPusatSection");
+    if (pusatSection) {
+        pusatSection.classList.remove("hidden-section");
+    }
+
+    // 3. Muat ulang data pusat agar tetap sinkron
+    muatDashboardPusat();
 }
 </script>
 </body>
