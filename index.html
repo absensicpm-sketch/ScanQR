@@ -1184,7 +1184,7 @@ function muatDashboardPusat() {
         display.innerHTML = '<div class="text-center py-3">Memuat data...</div>';
     }
 
-    // Ambil tanggal hari ini format Indonesia
+    // Ambil tanggal hari ini format Bahasa Indonesia
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const tanggalHariIni = new Date().toLocaleDateString('id-ID', options);
 
@@ -1198,11 +1198,9 @@ function muatDashboardPusat() {
                 totalHadirSemua += hadirCount;
             });
 
-            // Judul dengan tambahan Tanggal Hari Ini
+            // Render judul, kotak tanggal, card ringkasan, dan tabel secara dinamis
             let html = `
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="fw-bold text-danger mb-0 fs-5">Monitoring Pusat</h4>
-                </div>
+                <h4 class="fw-bold text-danger mb-2 fs-5">Monitoring Pusat</h4>
                 <div class="alert alert-light border py-2 px-3 mb-3 text-center shadow-sm" style="font-size: 12px; font-weight: 600; color: #555; border-radius: 8px;">
                     📅 ${tanggalHariIni}
                 </div>
