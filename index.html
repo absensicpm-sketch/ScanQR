@@ -1181,7 +1181,13 @@ function closeModal() {
 }
 function muatDashboardPusat() {
     const display = document.getElementById('displayDataPusat');
-    display.innerHTML = '<div class="text-center">Memuat data...</div>';
+    if (display) {
+        display.innerHTML = '<div class="text-center py-3">Memuat data...</div>';
+    }
+
+    // Ambil tanggal hari ini format Indonesia
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const tanggalHariIni = new Date().toLocaleDateString('id-ID', options);
 
     window.handleData = function(res) {
         if (res.status === "success") {
@@ -1193,18 +1199,26 @@ function muatDashboardPusat() {
                 totalHadirSemua += hadirCount;
             });
 
+            // Judul dengan tambahan Tanggal Hari Ini
             let html = `
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold text-danger mb-0 fs-5">Monitoring Pusat</h4>
+                </div>
+                <div class="alert alert-light border py-2 px-3 mb-3 text-center shadow-sm" style="font-size: 12px; font-weight: 600; color: #555; border-radius: 8px;">
+                    📅 ${tanggalHariIni}
+                </div>
+
                 <div class="row g-2 mb-3">
                     <div class="col-6">
-                        <div class="card text-white bg-primary p-2 text-center shadow-sm">
+                        <div class="card text-white bg-primary p-2 text-center shadow-sm border-0" style="border-radius: 10px;">
                             <small style="font-size: 11px;">Total Area</small>
-                            <h4 class="mb-0 fs-5">${totalArea}</h4>
+                            <h4 class="mb-0 fs-5 fw-bold">${totalArea}</h4>
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="card text-white bg-success p-2 text-center shadow-sm">
+                        <div class="card text-white bg-success p-2 text-center shadow-sm border-0" style="border-radius: 10px;">
                             <small style="font-size: 11px;">Total Hadir</small>
-                            <h4 class="mb-0 fs-5">${totalHadirSemua}</h4>
+                            <h4 class="mb-0 fs-5 fw-bold">${totalHadirSemua}</h4>
                         </div>
                     </div>
                 </div>
@@ -1213,9 +1227,9 @@ function muatDashboardPusat() {
                     <table class="table table-sm table-bordered table-striped align-middle mb-0" style="font-size: 13px;">
                         <thead class="table-danger text-center">
                             <tr>
-                                <th class="py-2" style="width: 55%;">Nama Cabang</th>
+                                <th class="py-2" style="width: 50%;">Nama Cabang</th>
                                 <th class="py-2" style="width: 20%;">Hadir</th>
-                                <th class="py-2" style="width: 25%;">Aksi</th>
+                                <th class="py-2" style="width: 30%;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>`;
@@ -1228,7 +1242,7 @@ function muatDashboardPusat() {
                             <td class="py-2 px-2 fw-bold text-dark text-start text-break">${namaCabang}</td>
                             <td class="py-2 px-1 text-center fw-bold text-success">${hadirCount}</td>
                             <td class="py-2 px-1 text-center">
-                                <button class="btn btn-sm btn-primary py-0 px-2 shadow-sm" style="font-size: 12px;" onclick="bukaDashboardCabang('${namaCabang}')">
+                                <button class="btn btn-sm btn-primary py-0 px-2 shadow-sm" style="font-size: 11px;" onclick="bukaDashboardCabang('${namaCabang}')">
                                     Detail
                                 </button>
                             </td>
@@ -1236,9 +1250,14 @@ function muatDashboardPusat() {
             });
             
             html += `</tbody></table></div>`;
-            display.innerHTML = html;
+            
+            if (display) {
+                display.innerHTML = html;
+            }
         } else {
-            display.innerHTML = "<div class='text-center text-danger small'>Gagal memuat data: " + res.message + "</div>";
+            if (display) {
+                display.innerHTML = "<div class='text-center text-danger small py-2'>Gagal memuat data: " + res.message + "</div>";
+            }
         }
     };
 
@@ -1247,7 +1266,6 @@ function muatDashboardPusat() {
     document.body.appendChild(script);
     script.onload = function() { script.remove(); };
 }
-
 /**
  * Fungsi untuk membuka dashboard cabang di halaman yang sama
  */
@@ -1273,6 +1291,16 @@ function bukaDashboardCabang(namaArea) {
     if (!targetSheetId || targetSheetId.includes("MASUKKAN")) {
         alert("Sheet ID untuk cabang " + namaArea + " belum diatur di dalam kode frontend!");
         return;
+    }
+
+    // Generate tanggal hari ini dalam format Bahasa Indonesia (Contoh: Selasa, 21 Juli 2026)
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const tanggalHariIni = new Date().toLocaleDateString('id-ID', options);
+
+    // Update teks hari dan tanggal pada header detail cabang
+    const subHeaderTanggal = document.getElementById('subHeaderTanggalCabang'); 
+    if (subHeaderTanggal) {
+        subHeaderTanggal.innerText = "Monitor Absensi Hari Ini — " + tanggalHariIni;
     }
 
     // 1. Sembunyikan Dashboard Pusat
