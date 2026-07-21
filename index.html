@@ -882,7 +882,7 @@ function prosesLogin() {
 
 /* ... (kode di atas tidak berubah) ... */
 
-function logout() {  
+function logout() {
     // 1. Matikan semua hardware & scanner
     matikanSemuaAliranKamera();
     
@@ -912,14 +912,15 @@ function logout() {
     if (passField) passField.value = "";
     if (rememberBox) rememberBox.checked = false;
     
-    // 4. Reset tampilan semua section
+    // 4. Reset tampilan semua section (termasuk detail cabang pusat agar tidak tertinggal)
     const sectionsToHide = [
         "karyawanSection", 
         "toiletSection", 
         "absensiForm", 
         "dashboardMenuSection", 
         "dashboardKacabSection",
-        "dashboardPusatSection" 
+        "dashboardPusatSection",
+        "detailCabangPusatSection" // Ditambahkan agar ikut tertutup saat logout
     ];
     
     sectionsToHide.forEach(id => {
@@ -938,25 +939,33 @@ window.onload = function() {
     // Saat halaman dimuat, isi dengan username terakhir jika ada
     let lastUser = localStorage.getItem("cpm_last_user");
     if (lastUser) {
-        document.getElementById("username").value = lastUser;
-        document.getElementById("username").dispatchEvent(new Event('blur'));
+        let userField = document.getElementById("username");
+        if (userField) {
+            userField.value = lastUser;
+            userField.dispatchEvent(new Event('blur'));
+        }
     }
 
-    document.getElementById("username").addEventListener("blur", function() {
-        let inputUser = this.value.trim();
-        let savedData = localStorage.getItem("cpm_save_" + inputUser);
+    let userFieldElement = document.getElementById("username");
+    if (userFieldElement) {
+        userFieldElement.addEventListener("blur", function() {
+            let inputUser = this.value.trim();
+            let savedData = localStorage.getItem("cpm_save_" + inputUser);
 
-        if (savedData) {
-            let data = JSON.parse(savedData);
-            document.getElementById("password").value = data.password;
-            document.getElementById("ingatSaya").checked = true;
-        } else {
-            document.getElementById("password").value = "";
-            document.getElementById("ingatSaya").checked = false;
-        }
-    });
+            let passField = document.getElementById("password");
+            let rememberBox = document.getElementById("ingatSaya");
+
+            if (savedData) {
+                let data = JSON.parse(savedData);
+                if (passField) passField.value = data.password;
+                if (rememberBox) rememberBox.checked = true;
+            } else {
+                if (passField) passField.value = "";
+                if (rememberBox) rememberBox.checked = false;
+            }
+        });
+    }
 };
-
 /* ... (lanjutkan dengan fungsi muatDataMonitor, dll) ... */
 function muatDataMonitorSaatRefresh() {
     console.log("Memulai proses refresh data...");
